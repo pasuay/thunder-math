@@ -32,11 +32,13 @@ Thunder Math is a fast, arcade-style math practice game for kids, rendered in **
 4. **Tap the correct answer** to zap the highlighted monster with thunder.
 5. Keep your hero's health up, build your combo, clear the stages, and defeat the boss!
 
-| Gameplay (mobile) | THUNDERSTORM combo | Research-backed design |
-|---|---|---|
-| ![Gameplay](screenshots/gameplay.png) | ![Thunderstorm chain lightning](screenshots/thunderstorm.png) | ![Research panel](screenshots/research.png) |
+<p align="center">
+  <img src="screenshots/gameplay.png" alt="Gameplay — many monsters, one lightning strike" width="280">
+  &nbsp;&nbsp;
+  <img src="screenshots/thunderstorm.png" alt="THUNDERSTORM combo — chain lightning" width="280">
+</p>
 
-> Build a 5-answer streak to unleash the **THUNDERSTORM** — chain lightning that zaps every monster on screen at once.
+<p align="center"><sub><b>Left:</b> many monsters, one lightning strike &nbsp;·&nbsp; <b>Right:</b> the <b>THUNDERSTORM</b> combo — build a 5-answer streak to chain lightning across every monster on screen.</sub></p>
 
 ## 🛠️ Built with
 
@@ -71,7 +73,29 @@ This repo is ready for free hosting:
 
 ## 📚 Built on math-education research
 
-Each mode's progression mirrors established fluency standards (e.g. the Common Core State Standards for Mathematics) and peer-reviewed research in early mathematics education — moving deliberately from concrete → pictorial → abstract. Open the **"Built on math-education research"** panel on the start screen to read the full citation list inside the game.
+Each mode's progression mirrors established fluency standards and peer-reviewed research in early mathematics education — moving deliberately from concrete → pictorial → abstract. The same list is available in-game via the **"Built on math-education research"** panel on the start screen.
+
+**Add & Subtract** — the strategy ladder (count on → make ten → bridging through ten → doubles → think-addition):
+
+- National Governors Association Center for Best Practices & Council of Chief State School Officers (2010). *Common Core State Standards for Mathematics*, 1.OA.C.6 & 2.OA.B.2. Washington, DC.
+- Paliwal, V., & Baroody, A. J. (2020). Fostering the learning of subtraction concepts and the subtraction-as-addition reasoning strategy. *Early Childhood Research Quarterly, 51*, 403–415. [doi:10.1016/j.ecresq.2019.05.008](https://doi.org/10.1016/j.ecresq.2019.05.008)
+- Kullberg, A., Björklund, C., Runesson Kempe, U., Brkovic, I., Nord, M., & Maunula, T. (2024). Improvements in learning addition and subtraction when using a structural approach in first grade. *Educational Studies in Mathematics, 117.* [doi:10.1007/s10649-024-10339-z](https://doi.org/10.1007/s10649-024-10339-z)
+
+**Times Tables** — the array (groups) model and structure-first ordering of the tables (anchor facts 2, 5, 10 → the 0× and 1× rules → 3, 4 → the hard cluster 6–9):
+
+- Barmby, P., Harries, T., Higgins, S., & Suggate, J. (2009). The array representation and primary children's understanding and reasoning in multiplication. *Educational Studies in Mathematics, 70*(3), 217–241. [doi:10.1007/s10649-008-9145-1](https://doi.org/10.1007/s10649-008-9145-1)
+- Mulligan, J., & Mitchelmore, M. (2009). Awareness of pattern and structure in early mathematical development. *Mathematics Education Research Journal, 21*(2), 33–49. [doi:10.1007/BF03217544](https://doi.org/10.1007/BF03217544)
+- NRICH (Pennant, with Way & Askew), University of Cambridge, and NCETM — *Arrays, Multiplication and Division* / *Arrays and Area Models* (practitioner guidance).
+
+**Tens & Ones (Place Value)** — base-ten blocks and the part-whole (number-bond) idea, following concrete → pictorial → abstract:
+
+- Bruner, J. S. (1966). *Toward a Theory of Instruction.* Cambridge, MA: Belknap Press of Harvard University Press — the enactive–iconic–symbolic (concrete–pictorial–abstract) sequence.
+- Dienes, Z. P. (1960). *Building Up Mathematics.* London: Hutchinson Educational — base-ten / multi-base blocks that make "a ten is ten ones" visible.
+
+**Number Patterns** — skip-counting and number sequences build the awareness of pattern and structure that underpins multiplication and early algebra:
+
+- Mulligan, J., & Mitchelmore, M. (2009). Awareness of pattern and structure in early mathematical development. *Mathematics Education Research Journal, 21*(2), 33–49. [doi:10.1007/BF03217544](https://doi.org/10.1007/BF03217544)
+- Clements, D. H., & Sarama, J. (2009). *Learning and Teaching Early Math: The Learning Trajectories Approach* (1st ed.). New York: Routledge — counting and patterning learning trajectories.
 
 ## 🙌 Credits
 
