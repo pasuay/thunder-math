@@ -99,7 +99,7 @@ Each mode's progression mirrors established fluency standards and peer-reviewed 
 
 ## 🙌 Credits
 
-Developed by **Victoria AY's Daddy**.
+Developed by **Pashur Au Yeung**.
 
 ## 📄 License
 
