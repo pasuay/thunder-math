@@ -31,15 +31,24 @@
     transition: transform .05s, background .12s; touch-action: manipulation; }
   .ans:hover { background: rgba(26,51,112,0.95); }
   .ans:active { transform: scale(0.95); }
-  #power { pointer-events: auto; display: none; font-family: 'Press Start 2P', monospace;
+  #power { pointer-events: auto; display: none; position: relative;
+    align-items: center; justify-content: center; line-height: 1;
+    font-family: 'Press Start 2P', monospace;
     font-size: 13px; color: #2a1a00; background: linear-gradient(#fff3b0, #ffd24e);
-    border: 2px solid #fff3b0; border-radius: 12px; padding: 11px 20px; cursor: pointer;
+    border: 2px solid #fff3b0; border-radius: 12px; padding: 12px 20px 9px; cursor: pointer;
     letter-spacing: 2px; touch-action: manipulation;
-    animation: powerPulse 0.7s ease-in-out infinite alternate; }
+    animation: powerPulse 0.7s ease-in-out infinite alternate, powerCrackle 0.22s steps(1, end) infinite; }
   #power:active { transform: scale(0.95); }
   @keyframes powerPulse {
-    from { box-shadow: 0 0 12px rgba(255,216,78,0.55); transform: scale(1); }
-    to   { box-shadow: 0 0 30px rgba(255,216,78,0.95); transform: scale(1.05); } }
+    from { transform: scale(1); }
+    to   { transform: scale(1.05); } }
+  /* crackling electric halo around the charged button (yellow core + electric-blue arcs) */
+  @keyframes powerCrackle {
+    0%   { box-shadow: 0 0 11px 1px rgba(255,216,78,0.80), 0 0 20px 3px rgba(90,200,255,0.45), 0 0 5px 0 rgba(255,255,255,0.85); }
+    25%  { box-shadow: 0 0 24px 3px rgba(255,216,78,0.95), 0 0 13px 2px rgba(120,225,255,0.70), 0 0 9px 1px rgba(255,255,255,0.65); }
+    50%  { box-shadow: 0 0 13px 1px rgba(255,216,78,0.70), 0 0 30px 5px rgba(90,200,255,0.60), 0 0 6px 0 rgba(255,255,255,1.00); }
+    75%  { box-shadow: 0 0 27px 4px rgba(255,216,78,1.00), 0 0 17px 2px rgba(120,225,255,0.55), 0 0 11px 1px rgba(255,255,255,0.60); }
+    100% { box-shadow: 0 0 11px 1px rgba(255,216,78,0.80), 0 0 20px 3px rgba(90,200,255,0.45), 0 0 5px 0 rgba(255,255,255,0.85); } }
   #overlay { position: absolute; inset: 0; z-index: 10; display: none;
     flex-direction: column; align-items: center; justify-content: center;
     text-align: center; padding: 16px 18px 26px; overflow-y: auto;
@@ -1512,7 +1521,7 @@
   });
   // ---------- combo power-up: THUNDERSTORM ----------
   function updatePowerBtn() {
-    powerBtn.style.display = (charge >= chargeMax && state === "playing") ? "inline-block" : "none";
+    powerBtn.style.display = (charge >= chargeMax && state === "playing") ? "inline-flex" : "none";
   }
   // chain-lightning that clears every monster (and fireball) on screen, with a
   // free hit if the boss is open — the payoff for a 5-answer streak
