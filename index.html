@@ -192,7 +192,7 @@
     <div class="rInner">
       <button id="researchClose">Close &#10005;</button>
       <h1>Built on math-education research</h1>
-      <p class="rLead">Both of Thunder Math's modes follow established fluency standards and peer-reviewed studies, taught in a concrete &rarr; representational &rarr; abstract progression.</p>
+      <p class="rLead">All four of Thunder Math's modes follow established fluency standards and peer-reviewed studies, taught in a concrete &rarr; representational &rarr; abstract progression.</p>
       <h2>Add &amp; Subtract</h2>
       <p>The strategy ladder &mdash; count on &rarr; make ten &rarr; bridging through ten &rarr; doubles &rarr; think-addition &mdash; follows established fluency standards and peer-reviewed studies:</p>
       <ul>
@@ -599,23 +599,35 @@
   })();
 
   // ---------- storage ----------
+  // Prefer an injected async `window.storage`; otherwise persist to localStorage
+  // (namespaced), falling back to an in-memory map when neither is usable (private
+  // mode, quota, file://). Without the localStorage tier a plain browser run kept
+  // best scores / stars / review facts only in memory and lost them on reload.
   var mem = {};
+  function lsGet(k) {
+    try { var v = window.localStorage.getItem("tm_" + k); if (v != null) return v; } catch (e) {}
+    return (k in mem) ? mem[k] : null;
+  }
+  function lsSet(k, v) {
+    try { window.localStorage.setItem("tm_" + k, v); } catch (e) {}
+  }
   function storeGet(k) {
     return new Promise(function (res) {
       try {
         if (window.storage && window.storage.get) {
-          window.storage.get(k).then(function (r) { res(r ? r.value : null); }).catch(function () { res(mem[k] || null); });
+          window.storage.get(k).then(function (r) { res(r ? r.value : null); }).catch(function () { res(lsGet(k)); });
           return;
         }
       } catch (e) {}
-      res(mem[k] || null);
+      res(lsGet(k));
     });
   }
   function storeSet(k, v) {
     mem[k] = v;
     try {
-      if (window.storage && window.storage.set) window.storage.set(k, v).catch(function () {});
+      if (window.storage && window.storage.set) { window.storage.set(k, v).catch(function () {}); return; }
     } catch (e) {}
+    lsSet(k, v);
   }
   var best = 0;
   // ---- per-mode persistence keys; addsub falls back to legacy un-namespaced keys ----
@@ -627,6 +639,19 @@
       if (v != null || mode !== "addsub") return v;
       return storeGet(legacyKey); // inherit existing Plus-Minus progress
     });
+  }
+  // a persisted review fact must be structurally sound; a corrupted or old save
+  // could otherwise throw or spawn nonsensical prompts. (Per-mode factFits still
+  // filters whether a sound fact fits the current stage.)
+  function validReviewFact(f) {
+    if (!f || typeof f !== "object") return false;
+    if (typeof f.key !== "string" || !f.key) return false;
+    if (typeof f.a !== "number" || !isFinite(f.a)) return false;
+    if (f.op != null && typeof f.op !== "string") return false;
+    if (f.b != null && typeof f.b !== "number" && typeof f.b !== "string") return false;
+    if (typeof f.miss !== "number" || !isFinite(f.miss)) f.miss = 1;
+    if (typeof f.streak !== "number" || !isFinite(f.streak)) f.streak = 0;
+    return true;
   }
   // load best/stars/review for the active mode (called at boot and on mode switch)
   function loadModeData() {
@@ -641,7 +666,7 @@
     reviewQueue = [];
     legacyGet(kReview(), "review").then(function (v) {
       if (!v) return;
-      try { var q = JSON.parse(v); if (Array.isArray(q)) reviewQueue = q; } catch (e) {}
+      try { var q = JSON.parse(v); if (Array.isArray(q)) reviewQueue = q.filter(validReviewFact).slice(0, 12); } catch (e) {}
     });
   }
 
@@ -1035,7 +1060,7 @@
           ]
         }
       },
-      factKey: function (num) { return "pv" + num; },
+      factKey: function (num, kind) { return "pv:" + kind + ":" + num; },
       _make: function (num, kind) {
         var T = Math.floor(num / 10), O = num % 10, ans, disp, aidN = num;
         switch (kind) {
@@ -1051,7 +1076,7 @@
           case "one-":      disp = "1 less than " + num; ans = num - 1; break;
           default:          disp = T + (T === 1 ? " ten " : " tens ") + O + (O === 1 ? " one" : " ones"); ans = num; // compose
         }
-        return { ans: ans, disp: disp, op: "pv", fa: num, fb: 0, aidN: aidN, key: this.factKey(num) };
+        return { ans: ans, disp: disp, op: "pv:" + kind, fa: num, fb: 0, aidN: aidN, key: this.factKey(num, kind) };
       },
       // pick a number that keeps `kind` well-formed: the answer stays in 0..max and
       // the digits the format needs are present. `base` (a fact being reviewed) is
@@ -1079,7 +1104,10 @@
       factFits: function (f) { var spec = bossPhase ? bossPool : curStage(); return f.a <= (spec.max || 100); },
       problemFromFact: function (f) {
         var spec = bossPhase ? bossPool : curStage(), kinds = spec.kinds || ["compose"];
-        var kind = kinds[rint(0, kinds.length - 1)];
+        // re-test the *same* skill that was missed (kind is encoded in the fact's
+        // op), so mastery can't be faked by answering a different kind for the same
+        // number; fall back to a stage kind for legacy facts saved without a kind.
+        var kind = (typeof f.op === "string" && f.op.indexOf("pv:") === 0) ? f.op.slice(3) : kinds[rint(0, kinds.length - 1)];
         return this._make(this._pick(kind, spec.max || 100, f.a), kind);
       },
       // base-ten blocks (Dienes): `tens` columns of 10 unit cubes + the loose ones
@@ -1544,6 +1572,7 @@
       strike(boss.x, boss.y); explode(boss.x, boss.y, "#8af06a", false);
       boss.hp--; boss.directLeft--; boss.state = "hurt"; boss.stateT = 0.45; score += 120;
       if (boss.hp <= 0) { winGame(); return; }
+      if (boss.directLeft <= 0) beginFirePhase(); // mirror the normal direct-hit path so it can't grant a free extra hit
     }
     hp = Math.min(maxHp, hp + 10);
     armed = null; checkLevel();
@@ -1961,7 +1990,7 @@
             boss.launchT -= dt;
             if (boss.launchT <= 0) {
               boss.state = "fire"; boss.stateT = 0.7;
-              launchFireball(1); sfxFire();
+              launchFireball(3 - boss.fireLeft); sfxFire(); // fireLeft 3..1 -> idx 0,1,2 (left/centre/right spread)
               boss.fireLeft--;
               boss.launchT = 0.7; // telegraph before the next one (counts only after this is cleared)
             }
