@@ -103,4 +103,4 @@ Developed by **Victoria AY's Daddy**.
 
 ## 📄 License
 
-All rights reserved unless a license file is added. Feel free to play and share the link!
+Released under the [MIT License](LICENSE) — free to use, modify, and share, with attribution. three.js is also MIT-licensed.
