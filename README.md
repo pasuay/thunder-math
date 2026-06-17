@@ -2,7 +2,7 @@
 
 **Zap the monsters with thunder before they reach you** — pick a mode, choose a difficulty, build big combos, and beat the boss!
 
-Thunder Math is a fast, arcade-style math practice game for kids. Every monster carries a question; tap the right answer to strike it down with lightning before it reaches the hero. It's a single self-contained HTML file — no install, no accounts, no data collected.
+Thunder Math is a fast, arcade-style math practice game for kids, rendered in **3D with three.js (WebGL)**. Every monster carries a question; tap the right answer to strike it down with lightning before it reaches the hero. The whole game is a **single HTML file** — no build step, no accounts, no data collected — and it's **designed for mobile screens** as well as desktop.
 
 🎮 **[Play it now »](https://pasuay.github.io/thunder-math/)**
 
@@ -20,8 +20,9 @@ Thunder Math is a fast, arcade-style math practice game for kids. Every monster 
 - **Four difficulty tiers** — Easy, Medium, Hard, and a **Boss** fight
 - **Combo system & scoring** — answer fast and accurately to build big combos and earn up to ⭐⭐⭐ per level
 - **Built on math-education research** — the difficulty ladder in each mode follows established fluency standards and peer-reviewed studies (count on → make ten → bridging → doubles, the array model for multiplication, base-ten blocks for place value, and more)
-- **Works everywhere** — runs in any modern browser on desktop, tablet, or phone; touch and mouse both supported
-- **Zero setup** — one HTML file, fully offline-capable
+- **3D graphics in the browser** — built with **three.js / WebGL** for the scene and effects, with a 2D canvas HUD overlay
+- **Mobile-screen compatible** — responsive layout, large touch-friendly tap targets, and a locked viewport so it plays great on phones and tablets (touch and mouse both supported)
+- **Zero install** — a single HTML file; just open it or host it anywhere static
 
 ## 🕹️ How to play
 
@@ -34,6 +35,15 @@ Thunder Math is a fast, arcade-style math practice game for kids. Every monster 
 | Gameplay | Research-backed design |
 |---|---|
 | ![Gameplay](screenshots/gameplay.png) | ![Research panel](screenshots/research.png) |
+
+## 🛠️ Built with
+
+- **HTML5** — a single `index.html` file, no build tooling
+- **[three.js](https://threejs.org/) (r128) over WebGL** — `WebGLRenderer` + `PerspectiveCamera` for the 3D scene, loaded from a CDN
+- **2D Canvas** — HUD and on-screen effects overlay
+- **Web Audio API** — sound effects and music
+
+> Note: three.js is loaded from a CDN, so an internet connection is needed the first time it runs.
 
 ## 🚀 Run it locally
 
