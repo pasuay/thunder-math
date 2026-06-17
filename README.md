@@ -32,9 +32,11 @@ Thunder Math is a fast, arcade-style math practice game for kids, rendered in **
 4. **Tap the correct answer** to zap the highlighted monster with thunder.
 5. Keep your hero's health up, build your combo, clear the stages, and defeat the boss!
 
-| Gameplay | Research-backed design |
-|---|---|
-| ![Gameplay](screenshots/gameplay.png) | ![Research panel](screenshots/research.png) |
+| Gameplay (mobile) | THUNDERSTORM combo | Research-backed design |
+|---|---|---|
+| ![Gameplay](screenshots/gameplay.png) | ![Thunderstorm chain lightning](screenshots/thunderstorm.png) | ![Research panel](screenshots/research.png) |
+
+> Build a 5-answer streak to unleash the **THUNDERSTORM** — chain lightning that zaps every monster on screen at once.
 
 ## 🛠️ Built with
 
