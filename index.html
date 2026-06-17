@@ -1044,25 +1044,34 @@
         }
         return { ans: ans, disp: disp, op: "pv", fa: num, fb: 0, aidN: aidN, key: this.factKey(num) };
       },
+      // pick a number that keeps `kind` well-formed: the answer stays in 0..max and
+      // the digits the format needs are present. `base` (a fact being reviewed) is
+      // reused when it already fits, otherwise nudged into range — so a resurfaced
+      // fact never becomes a malformed question ("10 less than 3", "0 tens 4 ones",
+      // "50 + 0"). With no `base` this reproduces the original per-kind ranges.
+      _pick: function (kind, max, base) {
+        var has = base != null, lo, hi;
+        if (kind === "tens") { hi = Math.min(9, Math.floor(max / 10)); var t = has ? Math.round(base / 10) : rint(1, hi); return Math.max(1, Math.min(hi, t)) * 10; }
+        if (kind === "ten+") { lo = 0; hi = max - 10; }
+        else if (kind === "ten-") { lo = 10; hi = max; }
+        else if (kind === "one+") { lo = 0; hi = max - 1; }
+        else if (kind === "one-") { lo = 1; hi = max; }
+        else { lo = 11; hi = max; }
+        var num = has ? Math.max(lo, Math.min(hi, base)) : rint(lo, hi);
+        if ((kind === "compose" || kind === "expand" || kind === "decomp" || kind === "decompT") && num % 10 === 0) num = has ? (num < hi ? num + 1 : num - 1) : num - 10 + rint(1, 9);
+        return num;
+      },
       gen: function (bossPhase) {
         var spec = bossPhase ? bossPool : curStage();
         var max = spec.max || 100, kinds = spec.kinds || ["compose"];
-        var kind = kinds[rint(0, kinds.length - 1)], num;
-        if (kind === "tens") num = rint(1, Math.min(9, Math.floor(max / 10))) * 10;
-        else if (kind === "ten+") num = rint(0, max - 10);
-        else if (kind === "ten-") num = rint(10, max);
-        else if (kind === "one+") num = rint(0, max - 1);
-        else if (kind === "one-") num = rint(1, max);
-        else {
-          num = rint(11, max);
-          if ((kind === "compose" || kind === "expand" || kind === "decomp" || kind === "decompT") && num % 10 === 0) num = num - 10 + rint(1, 9);
-        }
-        return this._make(num, kind);
+        var kind = kinds[rint(0, kinds.length - 1)];
+        return this._make(this._pick(kind, max), kind);
       },
       factFits: function (f) { var spec = bossPhase ? bossPool : curStage(); return f.a <= (spec.max || 100); },
       problemFromFact: function (f) {
         var spec = bossPhase ? bossPool : curStage(), kinds = spec.kinds || ["compose"];
-        return this._make(f.a, kinds[rint(0, kinds.length - 1)]);
+        var kind = kinds[rint(0, kinds.length - 1)];
+        return this._make(this._pick(kind, spec.max || 100, f.a), kind);
       },
       // base-ten blocks (Dienes): `tens` columns of 10 unit cubes + the loose ones
       drawAid: function (t, by, hot) {
