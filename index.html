@@ -9,7 +9,7 @@
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; height: 100%; background: #070b22; overflow: hidden;
     font-family: Arial, sans-serif; user-select: none; -webkit-user-select: none; }
-  #game { position: relative; width: 100%; height: 100vh; height: 100dvh; min-height: 560px; background: #070b22; }
+  #game { position: relative; width: 100%; height: 100vh; height: 100dvh; background: #070b22; }
   #cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
   #gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; z-index: 3; pointer-events: none; }
   #mute { position: absolute; top: 12px; right: 12px; z-index: 5;
@@ -79,6 +79,11 @@
   .spark.s4 { left: 82%; top: 60%; width: 5px; height: 5px; animation-delay: 1.65s; }
   .spark.s5 { left: 50%; top: 8%; animation-delay: 2.0s; }
   @keyframes twinkle { 0%, 100% { opacity: 0; transform: scale(0.4); } 50% { opacity: 1; transform: scale(1); } }
+  /* respect the OS "reduce motion" setting: stop the continuous decorative loops
+     (JS also damps the full-screen flash, screen shake, and lightning crackles) */
+  @media (prefers-reduced-motion: reduce) {
+    #power, #heroArt, #heroWrap::before, .spark { animation: none !important; }
+  }
   #ovTitle { font-family: 'Press Start 2P', monospace; color: #ff8fd0;
     font-size: clamp(20px, 5vw, 34px); margin: 0 0 16px; text-shadow: 0 0 18px rgba(255,143,208,0.6); }
   #ovText { color: #d6e6ff; font-size: 15px; line-height: 1.6; max-width: 460px; margin: 0 0 14px; }
@@ -544,6 +549,17 @@
     tone(70, t, 0.6, "sine", 0.26, 38);
     [523, 659, 784, 1047, 1319].forEach(function (f, i) { tone(f, t + 0.05 + i * 0.05, 0.32, "triangle", 0.16); }); // rising sparkle
   }
+  // urgent klaxon for the "Alert! Boss Stage!" screen
+  function sfxAlert() {
+    if (!AC || muted) return; var t = now();
+    for (var i = 0; i < 3; i++) {                              // three two-tone blares
+      tone(784, t + i * 0.26, 0.15, "square", 0.16);
+      tone(523, t + i * 0.26 + 0.13, 0.15, "square", 0.16);
+    }
+    tone(98, t, 0.85, "sawtooth", 0.20, 62);                   // ominous descending drone
+    noise(t, 0.35, 0.18, 1500);                                // tension hiss
+    tone(220, t + 0.82, 0.45, "sawtooth", 0.16, 740);          // rising sting into the boss
+  }
   // heartbeat
   var hbTimer = 0;
   function heartbeat(dt) {
@@ -681,6 +697,15 @@
   var candyCooldown = 6;
   var boss = null, bossPhase = false;
   var castT = 0, cheerT = 0, wandFlash = 0, shake = 0, flash = 0, slowT = 0, timeScale = 1, castUp = false, castOrigin = null;
+  // honor the OS "reduce motion" accessibility setting — this game flashes/shakes a
+  // lot, so under it we skip the full-screen flash, screen shake, and lightning.
+  var reduceMotion = false;
+  try {
+    var _mqRM = window.matchMedia("(prefers-reduced-motion: reduce)");
+    reduceMotion = _mqRM.matches;
+    if (_mqRM.addEventListener) _mqRM.addEventListener("change", function (e) { reduceMotion = e.matches; });
+    else if (_mqRM.addListener) _mqRM.addListener(function (e) { reduceMotion = e.matches; });
+  } catch (e) {}
   var hurtT = 0; // counts down while she's actively taking damage -> shows the hurt pose
   // combo power-up: solving builds charge; at chargeMax the THUNDERSTORM button lights up
   var charge = 0, chargeMax = 5;
@@ -688,6 +713,7 @@
   var danger = 0, resolving = 0, faceLeft = false;
   var girlY = 0; // heroine's vertical position (lower during the boss fight)
   var victoryT = 0, victoryBurst = 0, victoryReady = false; // boss-defeat celebration
+  var bossAlertT = 0, bossAlertReady = false; // "Alert! Boss Stage!" pause before the boss
   var elapsed = 0; // seconds of play this run (for the win-time readout)
   // star rating (per difficulty) + which key this run scores to
   var starsBest = { easy: 0, medium: 0, hard: 0, boss: 0 };
@@ -1449,8 +1475,8 @@
       forks.push(fl);
     }
     var col = up ? "#b98bff" : "#7fd2ff";
-    bolts.push({ seg: seg, forks: forks, life: 1, color: col, impact: { x: tx, y: ty }, origin: { x: wx, y: wy } });
-    if (window.__thunderGL && window.__thunderGL.ready) window.__thunderGL.strike({ x: wx, y: wy }, { x: tx, y: ty }, up);
+    if (!reduceMotion) bolts.push({ seg: seg, forks: forks, life: 1, color: col, impact: { x: tx, y: ty }, origin: { x: wx, y: wy } }); // 2-D fallback bolt; suppressed under reduced motion (matches the gated WebGL strike below)
+    if (!reduceMotion && window.__thunderGL && window.__thunderGL.ready) window.__thunderGL.strike({ x: wx, y: wy }, { x: tx, y: ty }, up);
     wandFlash = 0.5; castT = 0.45; flash = Math.max(flash, 0.55);
     for (var k = 0; k < 16; k++) { var aa = Math.random() * 6.28, ss = 40 + Math.random() * 110; parts.push({ x: wx, y: wy, vx: Math.cos(aa) * ss, vy: Math.sin(aa) * ss - 20, life: 1, max: 1, c: "#cfeaff", r: 2 }); }
     for (var k2 = 0; k2 < 14; k2++) { var a2 = Math.random() * 6.28, s2 = 60 + Math.random() * 150; parts.push({ x: tx, y: ty, vx: Math.cos(a2) * s2, vy: Math.sin(a2) * s2, life: 1, max: 1, c: Math.random() < 0.5 ? "#ffffff" : col, r: 2 + Math.random() * 2 }); }
@@ -1593,6 +1619,7 @@
   function onCanvasTap(e) {
     initAudio(); if (AC && AC.state === "suspended") AC.resume();
     if (state === "victory") { if (victoryReady) returnToMenu(); return; }
+    if (state === "bossAlert") { if (bossAlertReady) confirmBossAlert(); return; }
     if (state !== "playing") return;
     var rect = cv.getBoundingClientRect();
     var pt = (e.changedTouches && e.changedTouches[0]) || e;
@@ -1606,13 +1633,13 @@
       }
     }
   }
-  cv.addEventListener("click", onCanvasTap);
+  cv.addEventListener("pointerup", onCanvasTap);
 
   // ---------- level / boss flow ----------
   function checkLevel() {
     if (bossPhase) return;
     if (killsThisLevel >= levelGoal) {
-      if (level >= MAX_LEVEL) { startBoss(); }
+      if (level >= MAX_LEVEL) { beginBossAlert(); }
       else { nextLevel(); }
     }
   }
@@ -1623,6 +1650,27 @@
     cheerT = 0.9;
     showBanner("Level " + level, curStage().focus);
     sfxFanfare();
+  }
+  // pause before the boss: a full-screen "Alert! Boss Stage!" the player taps to dismiss.
+  // Shared by every mode (the boss flow is mode-agnostic — only the problems differ).
+  function beginBossAlert() {
+    state = "bossAlert";
+    bossAlertT = 0; bossAlertReady = false;
+    armed = null; bannerT = 0;
+    monsters = monsters.filter(function (m) { return m.type === "candy"; }); // calm the field
+    hintEl.style.visibility = "hidden";
+    document.getElementById("answers").style.visibility = "hidden";
+    updatePowerBtn();        // hides the power button (state !== "playing")
+    music.setBoss(true);     // swell into the boss theme for tension
+    sfxAlert();
+    if (!reduceMotion) { flash = Math.max(flash, 0.55); shake = 12; } // entry jolt
+  }
+  function confirmBossAlert() {
+    hintEl.style.visibility = "visible";
+    document.getElementById("answers").style.visibility = "visible";
+    state = "playing";
+    updatePowerBtn();   // re-show the THUNDERSTORM button if a full charge was earned before the alert
+    startBoss();
   }
   function startBoss() {
     bossPhase = true;
@@ -1876,8 +1924,14 @@
       // keep particles/cheer animating on overlays
       stepParticles(dt);
       cheerT -= dt; if (cheerT < 0) cheerT = state === "win" ? 99 : 0;
+      if (state === "bossAlert") {
+        bossAlertT += dt;
+        if (bossAlertT > 0.8) bossAlertReady = true; // let them read it before a tap counts
+        if (flash > 0) flash -= dt * 2.4;
+        if (shake > 0) shake -= dt * 60;
+      }
       // title screen: occasional lightning crackles around the hero (upper-center)
-      if (state === "start") {
+      if (state === "start" && !reduceMotion) {
         titleT -= dt;
         if (titleT <= 0) {
           titleT = 0.8 + Math.random() * 1.7;
@@ -2677,9 +2731,47 @@
     ctx.restore();
   }
 
+  function drawBossAlert() {
+    var m = Math.min(W, H), t = performance.now();
+    ctx.save();
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillStyle = "rgba(34,2,8,0.62)"; ctx.fillRect(0, 0, W, H);   // dark warning wash
+    if (!reduceMotion) {                                             // pulsing red siren glow, top + bottom
+      var ga = 0.16 + 0.24 * (0.5 + 0.5 * Math.abs(Math.sin(t / 180))), bandH = H * 0.32;
+      var gt = ctx.createLinearGradient(0, 0, 0, bandH);
+      gt.addColorStop(0, "rgba(255,42,42," + ga.toFixed(3) + ")"); gt.addColorStop(1, "rgba(255,42,42,0)");
+      ctx.fillStyle = gt; ctx.fillRect(0, 0, W, bandH);
+      var gb = ctx.createLinearGradient(0, H, 0, H - bandH);
+      gb.addColorStop(0, "rgba(255,42,42," + ga.toFixed(3) + ")"); gb.addColorStop(1, "rgba(255,42,42,0)");
+      ctx.fillStyle = gb; ctx.fillRect(0, H - bandH, W, bandH);
+    }
+    // size text so it always fits the width, capped so it isn't huge on desktop
+    function fitFont(txt, frac, cap) {
+      ctx.font = "10px 'Press Start 2P', monospace";
+      return Math.max(12, Math.min(cap, (W * frac) / ctx.measureText(txt).width * 10));
+    }
+    ctx.save();
+    ctx.translate(cx, H * 0.40);
+    if (!reduceMotion) { var s = 1 + 0.05 * Math.sin(t / 130); ctx.scale(s, s); } // heartbeat pulse
+    ctx.font = fitFont("ALERT!", 0.84, m * 0.16).toFixed(1) + "px 'Press Start 2P', monospace";
+    ctx.fillStyle = "#ff3b3b"; ctx.shadowColor = "#ff0000"; ctx.shadowBlur = reduceMotion ? 8 : 26;
+    ctx.fillText("ALERT!", 0, 0);
+    ctx.restore();
+    ctx.font = fitFont("BOSS STAGE", 0.70, m * 0.07).toFixed(1) + "px 'Press Start 2P', monospace";
+    ctx.fillStyle = "#ffd84e"; ctx.shadowColor = "#ff8a00"; ctx.shadowBlur = 14;
+    ctx.fillText("BOSS STAGE", cx, H * 0.40 + m * 0.135);
+    ctx.font = "bold 14px Arial"; ctx.fillStyle = "#ffd0d0"; ctx.shadowColor = "#000"; ctx.shadowBlur = 4;
+    ctx.fillText("Get ready — here it comes!", cx, H * 0.40 + m * 0.205);
+    if (bossAlertReady) {                                           // tap prompt appears after a beat
+      ctx.globalAlpha = (t % 900) < 550 ? 1 : 0.28;
+      ctx.font = "12px 'Press Start 2P', monospace"; ctx.fillStyle = "#9fe9ff"; ctx.shadowColor = "#46e0ff"; ctx.shadowBlur = 10;
+      ctx.fillText("tap to begin", cx, H * 0.72);
+    }
+    ctx.restore();
+  }
   function render() {
     var ox = 0, oy = 0;
-    if (shake > 0) { ox = (Math.random() - 0.5) * shake; oy = (Math.random() - 0.5) * shake; }
+    if (shake > 0 && !reduceMotion) { ox = (Math.random() - 0.5) * shake; oy = (Math.random() - 0.5) * shake; }
     ctx.save();
     ctx.translate(ox, oy);
     drawGrid();
@@ -2712,7 +2804,8 @@
       g.addColorStop(1, "rgba(255,0,40," + alpha.toFixed(3) + ")");
       ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
     }
-    if (flash > 0) { ctx.fillStyle = "rgba(255,255,255," + (flash * 0.5).toFixed(3) + ")"; ctx.fillRect(0, 0, W, H); }
+    if (flash > 0 && !reduceMotion) { ctx.fillStyle = "rgba(255,255,255," + (flash * 0.5).toFixed(3) + ")"; ctx.fillRect(0, 0, W, H); }
+    if (state === "bossAlert") drawBossAlert();
     if (state === "victory") drawVictoryText();
   }
 
