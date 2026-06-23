@@ -105,6 +105,10 @@
   #mMul .mIco { background: linear-gradient(160deg, #ffe6a8, #ff9f43); }
   #mPlace .mIco { background: linear-gradient(160deg, #a8f0c8, #34d39e); font-size: 16px; }
   #mPattern .mIco { background: linear-gradient(160deg, #ffc4e8, #ff7bd5); }
+  #mQty .mIco { background: linear-gradient(160deg, #bfe9ff, #5fb0ff); }
+  #mBond .mIco { background: linear-gradient(160deg, #ffd0e6, #ff8ac0); }
+  #mMoney .mIco { background: linear-gradient(160deg, #ffe6a8, #e0b020); color: #5a3d00; }
+  #mNline .mIco { background: linear-gradient(160deg, #c8e0ff, #7a9cff); }
   .modeBtn:active { transform: scale(0.95); }
   .modeBtn.on { opacity: 1; transform: translateY(-2px); }
   #mAddsub.on { border-color: #35d6ff; background: rgba(53,214,255,0.16); box-shadow: 0 0 22px rgba(53,214,255,0.5); }
@@ -212,6 +216,10 @@
       <button class="modeBtn" id="mMul" data-m="mul"><span class="mIco">×</span><span class="mTxt"><span class="mLbl">Times Tables</span><span class="mSub">tables to 10</span></span></button>
       <button class="modeBtn" id="mPlace" data-m="place"><span class="mIco">10</span><span class="mTxt"><span class="mLbl">Tens &amp; Ones</span><span class="mSub">to 100</span></span></button>
       <button class="modeBtn" id="mPattern" data-m="pattern"><span class="mIco">&rarr;</span><span class="mTxt"><span class="mLbl">Number Patterns</span><span class="mSub">skip count</span></span></button>
+      <button class="modeBtn" id="mQty" data-m="qty"><span class="mIco">&#8285;</span><span class="mTxt"><span class="mLbl">How Many?</span><span class="mSub">count &amp; subitize</span></span></button>
+      <button class="modeBtn" id="mBond" data-m="bond"><span class="mIco">&#9682;</span><span class="mTxt"><span class="mLbl">Number Bonds</span><span class="mSub">make 10</span></span></button>
+      <button class="modeBtn" id="mMoney" data-m="money"><span class="mIco">$</span><span class="mTxt"><span class="mLbl">Money</span><span class="mSub">HK dollars</span></span></button>
+      <button class="modeBtn" id="mNline" data-m="nline"><span class="mIco">&#8614;</span><span class="mTxt"><span class="mLbl">Number Line</span><span class="mSub">0 to 100</span></span></button>
     </div>
     <div id="diff">
       <button class="diffBtn" id="dEasy" data-d="easy">EASY</button>
@@ -233,7 +241,7 @@
     <div class="rInner">
       <button id="researchClose">Close &#10005;</button>
       <h1>Built on math-education research</h1>
-      <p class="rLead">All four of Thunder Math's modes follow established fluency standards and peer-reviewed studies, taught in a concrete &rarr; representational &rarr; abstract progression.</p>
+      <p class="rLead">All eight of Thunder Math's modes follow established fluency standards and peer-reviewed studies, taught in a concrete &rarr; representational &rarr; abstract progression.</p>
       <h2>Add &amp; Subtract</h2>
       <p>The strategy ladder &mdash; count on &rarr; make ten &rarr; bridging through ten &rarr; doubles &rarr; think-addition &mdash; follows established fluency standards and peer-reviewed studies:</p>
       <ul>
@@ -259,6 +267,30 @@
       <ul>
         <li>Mulligan, J., &amp; Mitchelmore, M. (2009). Awareness of pattern and structure in early mathematical development. <em>Mathematics Education Research Journal, 21</em>(2), 33&ndash;49. doi:10.1007/BF03217544</li>
         <li>Clements, D. H., &amp; Sarama, J. (2009). <em>Learning and Teaching Early Math: The Learning Trajectories Approach</em> (1st ed.). New York: Routledge &mdash; counting and patterning learning trajectories.</li>
+      </ul>
+      <h2>How Many? (Subitizing)</h2>
+      <p>Instantly recognising small quantities &mdash; on dice patterns and ten-frames &mdash; builds the number sense that underpins counting and arithmetic:</p>
+      <ul>
+        <li>Clements, D. H. (1999). Subitizing: What is it? Why teach it? <em>Teaching Children Mathematics, 5</em>(7), 400&ndash;405.</li>
+        <li>Clements, D. H., &amp; Sarama, J. (2009). <em>Learning and Teaching Early Math: The Learning Trajectories Approach.</em> New York: Routledge &mdash; perceptual and conceptual subitizing in the early-number learning trajectory.</li>
+      </ul>
+      <h2>Number Bonds</h2>
+      <p>Part-whole &ldquo;number bonds&rdquo; to 10 and 20 &mdash; the make-ten and missing-addend ideas, shown on a ten-frame &mdash; are the engine of fluent mental arithmetic (Common Core 1.OA.C.6):</p>
+      <ul>
+        <li>Baroody, A. J. (2006). Why children have difficulties mastering the basic number combinations and how to help them. <em>Teaching Children Mathematics, 13</em>(1), 22&ndash;31.</li>
+        <li>Jordan, N. C., Kaplan, D., Ramineni, C., &amp; Locuniak, M. N. (2009). Early math matters: Kindergarten number competence and later mathematics outcomes. <em>Developmental Psychology, 45</em>(3), 850&ndash;867. doi:10.1037/a0014939</li>
+      </ul>
+      <h2>Money (HK$)</h2>
+      <p>Recognising coins and totalling them applies counting and addition in a concrete, real-world context, following the concrete &rarr; abstract progression:</p>
+      <ul>
+        <li>Department for Education (2013). <em>National Curriculum in England: Mathematics Programmes of Study</em>, Year 1 (Measurement) &mdash; recognise and know the value of different denominations of coins and notes.</li>
+        <li>National Governors Association Center for Best Practices &amp; Council of Chief State School Officers (2010). <em>Common Core State Standards for Mathematics</em>, 2.MD.C.8. Washington, DC &mdash; solve word problems involving coins using the $ and &cent; symbols.</li>
+      </ul>
+      <h2>Number Line</h2>
+      <p>Reading a number&rsquo;s position on a 0&ndash;100 line builds the numerical-magnitude understanding that is a strong predictor of later mathematics achievement:</p>
+      <ul>
+        <li>Siegler, R. S., &amp; Booth, J. L. (2004). Development of numerical estimation in young children. <em>Child Development, 75</em>(2), 428&ndash;444. doi:10.1111/j.1467-8624.2004.00684.x</li>
+        <li>Siegler, R. S., &amp; Ramani, G. B. (2009). Playing linear number board games&mdash;but not circular ones&mdash;improves low-income preschoolers&rsquo; numerical understanding. <em>Journal of Educational Psychology, 101</em>(3), 545&ndash;560. doi:10.1037/a0014239</li>
       </ul>
       <button class="rBackBtn" id="researchBack">Back to menu</button>
     </div>
@@ -916,6 +948,32 @@ try {
   //   drawAid(t,by,hot)    - the concrete manipulative; returns new aboveY
   //   usesCountAid         - wrong-answer "count it out" beat (multiply only)
   // ====================================================================
+  // ---- shared manipulative-aid helpers (used by the new visual modes) ----
+  var DICE_PIPS = { 1: [[1, 1]], 2: [[0, 0], [2, 2]], 3: [[0, 0], [1, 1], [2, 2]], 4: [[0, 0], [2, 0], [0, 2], [2, 2]], 5: [[0, 0], [2, 0], [1, 1], [0, 2], [2, 2]], 6: [[0, 0], [2, 0], [0, 1], [2, 1], [0, 2], [2, 2]] };
+  function fillCyan() { return "rgba(70,224,255,0.95)"; }
+  // where an aid's top sits: above the bubble for a monster/fireball, but BELOW it for
+  // the boss (whose bubble is drawn under the boss, clear of the top HP bar).
+  function aidY(t, by, h) { return (t === boss) ? by + 42 : by - 10 - h; }
+  // keep an aid of half-width `hw` fully on-screen even when its monster drifts to an edge
+  function clampAidX(x, hw) { return Math.max(4 + hw, Math.min(W - 4 - hw, x)); }
+  // draw `count` dots across ten-frame(s) centered on the target; fill(i) -> css color or null.
+  // Shared by the addition aid is NOT touched; this serves the new qty/bond modes (no per-cell allocation).
+  function drawTenFrames(t, by, count, fill) {
+    var COLS = 5, PER = 10, frames = Math.ceil(count / PER), cell = 13, padc = 2.4, step = cell + padc;
+    var fw = COLS * step - padc, fh = 2 * step - padc, fgap = 7, totalH = frames * fh + (frames - 1) * fgap;
+    var gx = clampAidX(t.x, fw / 2) - fw / 2, gy = aidY(t, by, totalH), dotR = cell / 2 - 2.5;
+    ctx.lineWidth = 1; ctx.strokeStyle = "rgba(180,200,240,0.45)";
+    for (var i = 0; i < frames * PER; i++) {
+      var bx = gx + (i % COLS) * step, byy = gy + ((i / PER) | 0) * (fh + fgap) + (((i % PER) / COLS) | 0) * step;
+      rrect(bx, byy, cell, cell, 2); ctx.stroke();
+    }
+    for (var j = 0; j < count; j++) {
+      var col = fill(j); if (!col) continue;
+      var dx = gx + (j % COLS) * step + cell / 2, dy = gy + ((j / PER) | 0) * (fh + fgap) + (((j % PER) / COLS) | 0) * step + cell / 2;
+      ctx.fillStyle = col; ctx.beginPath(); ctx.arc(dx, dy, dotR, 0, 6.3); ctx.fill();
+    }
+    return gy;
+  }
   var MODES = {
     addsub: {
       usesCountAid: false,
@@ -1374,6 +1432,250 @@ try {
         }
         return topY;
       }
+    },
+
+    // ---- "How Many?" — subitizing / quantity (ten-frames & dice). The dots ARE the
+    //      question, so the aid draws on the armed target in every phase. ----
+    qty: {
+      usesCountAid: false, visualAid: true,
+      DIFFS: {
+        easy: {
+          name: "EASY", pace: { maxMon: 3, goal: 6, spread: 0.45, variety: 0 }, boss: { min: 1, max: 6 },
+          stages: [
+            { focus: "How many? (to 5)", min: 1, max: 5, dice: true },
+            { focus: "Dice patterns", min: 1, max: 6, dice: true },
+            { focus: "Ten-frame to 10", min: 1, max: 10 },
+            { focus: "Mixed to 10", min: 1, max: 10 }
+          ]
+        },
+        medium: {
+          name: "MEDIUM", pace: { maxMon: 4, goal: 7, spread: 0.8, variety: 1 }, boss: { min: 4, max: 14 },
+          stages: [
+            { focus: "Ten-frame to 10", min: 3, max: 10 },
+            { focus: "Just past ten", min: 8, max: 14 },
+            { focus: "Two ten-frames", min: 10, max: 18 },
+            { focus: "Mixed to 18", min: 3, max: 18 }
+          ]
+        },
+        hard: {
+          name: "HARD", pace: { maxMon: 5, goal: 8, spread: 1.1, variety: 2 }, boss: { min: 6, max: 20 },
+          stages: [
+            { focus: "Count to 16", min: 6, max: 16 },
+            { focus: "Ten-frames to 20", min: 10, max: 20 },
+            { focus: "Quick: to 20", min: 5, max: 20 },
+            { focus: "Mixed to 20", min: 5, max: 20 }
+          ]
+        }
+      },
+      factKey: function (n) { return "q" + n; },
+      _make: function (n, spec) {
+        return { ans: n, disp: "How many?", op: "qty", fa: n, fb: 0, qtyN: n, dice: !!(spec && spec.dice && n <= 6),
+          optMin: 0, optMax: Math.max(n, (spec && spec.max) || 20), key: this.factKey(n) }; // choices stay within the count's range
+      },
+      gen: function (bossPhase) { var spec = bossPhase ? bossPool : curStage(); return this._make(rint(spec.min || 1, spec.max || 10), spec); },
+      factFits: function (f) { var spec = bossPhase ? bossPool : curStage(); return f.a >= (spec.min || 1) && f.a <= (spec.max || 20); },
+      problemFromFact: function (f) { return this._make(f.a, bossPhase ? bossPool : curStage()); },
+      drawAid: function (t, by, hot) {
+        if (!(hot && t.problem && t.problem.qtyN != null)) return by;
+        var n = t.problem.qtyN;
+        if (t.problem.dice) {                                  // single die face, standard pips
+          var sz = 36, x0 = clampAidX(t.x, sz / 2) - sz / 2, y0 = aidY(t, by, sz), g = sz / 3, pips = DICE_PIPS[n] || [];
+          ctx.fillStyle = "rgba(10,16,40,0.85)"; ctx.strokeStyle = "rgba(180,200,240,0.45)"; ctx.lineWidth = 1.5; rrect(x0, y0, sz, sz, 6); ctx.fill(); ctx.stroke();
+          ctx.fillStyle = "rgba(70,224,255,0.95)";
+          for (var p = 0; p < pips.length; p++) { ctx.beginPath(); ctx.arc(x0 + g / 2 + pips[p][0] * g, y0 + g / 2 + pips[p][1] * g, 3.4, 0, 6.3); ctx.fill(); }
+          return y0;
+        }
+        return drawTenFrames(t, by, n, fillCyan);
+      }
+    },
+
+    // ---- Number Bonds — part-whole / missing addend ("6 + ? = 10"). Text disp is
+    //      self-sufficient; the ten-frame aid is a bonus on dot stages. ----
+    bond: {
+      usesCountAid: false,
+      DIFFS: {
+        easy: {
+          name: "EASY", pace: { maxMon: 3, goal: 6, spread: 0.45, variety: 0 }, boss: { whole: [5, 10], kinds: ["missB", "missA"] },
+          stages: [
+            { focus: "Make 5", whole: [5], kinds: ["missB"], dots: true },
+            { focus: "Make 10", whole: [10], kinds: ["missB"], dots: true },
+            { focus: "Make 10 (either part)", whole: [10], kinds: ["missB", "missA"], dots: true },
+            { focus: "Bonds to 5 & 10", whole: [5, 10], kinds: ["missB", "missA"] }
+          ]
+        },
+        medium: {
+          name: "MEDIUM", pace: { maxMon: 4, goal: 7, spread: 0.8, variety: 1 }, boss: { whole: [10, 20], kinds: ["missB", "missA", "missW"] },
+          stages: [
+            { focus: "Make 10 both ways", whole: [10], kinds: ["missB", "missA"], dots: true },
+            { focus: "Add the parts (?=whole)", whole: [10], kinds: ["missW"] },
+            { focus: "Make 20", whole: [20], kinds: ["missB", "missA"] },
+            { focus: "Bonds to 10 & 20", whole: [10, 20], kinds: ["missB", "missA", "missW"] }
+          ]
+        },
+        hard: {
+          name: "HARD", pace: { maxMon: 5, goal: 8, spread: 1.1, variety: 2 }, boss: { whole: [10, 15, 20], kinds: ["missB", "missA", "missW"] },
+          stages: [
+            { focus: "Bonds to 20", whole: [20], kinds: ["missB", "missA"] },
+            { focus: "Make 15", whole: [15], kinds: ["missB", "missA"] },
+            { focus: "Find the whole", whole: [10, 15, 20], kinds: ["missW"] },
+            { focus: "Mixed mastery", whole: [10, 15, 20], kinds: ["missB", "missA", "missW"] }
+          ]
+        }
+      },
+      // the kind is in the key AND op so the three forms (missA/missB/missW, which have
+      // different answers for the same whole+part) are tracked as distinct skills — same
+      // pattern Place mode uses; otherwise mastering one form would mark all three solved.
+      factKey: function (whole, a, kind) { return "nb:" + kind + ":" + whole + ":" + a; },
+      _make: function (whole, a, kind) {
+        var b = whole - a, ans, disp;
+        if (kind === "missA") { ans = a; disp = "? + " + b + " = " + whole; }
+        else if (kind === "missW") { ans = whole; disp = a + " + " + b + " = ?"; }
+        else { ans = b; disp = a + " + ? = " + whole; }
+        return { ans: ans, disp: disp, op: "bond:" + kind, fa: whole, fb: a, whole: whole, part: a, key: this.factKey(whole, a, kind) };
+      },
+      gen: function (bossPhase) {
+        var spec = bossPhase ? bossPool : curStage(), whole = spec.whole[rint(0, spec.whole.length - 1)];
+        var kinds = spec.kinds || ["missB"];
+        return this._make(whole, rint(1, whole - 1), kinds[rint(0, kinds.length - 1)]); // both parts >= 1 (no trivial +0 bonds)
+      },
+      factFits: function (f) { var spec = bossPhase ? bossPool : curStage(); return (spec.whole || []).indexOf(f.a) >= 0; },
+      problemFromFact: function (f) {
+        var kinds = (bossPhase ? bossPool : curStage()).kinds || ["missB"];
+        var kind = (typeof f.op === "string" && f.op.indexOf("bond:") === 0) ? f.op.slice(5) : kinds[rint(0, kinds.length - 1)];
+        return this._make(f.a, f.b, kind); // re-test the SAME kind that was missed
+      },
+      drawAid: function (t, by, hot) {                         // ten-frame of the whole, known part filled
+        if (!(hot && !bossPhase && t.type !== "fire" && !!curStage().dots && t.problem && t.problem.whole != null)) return by;
+        var part = t.problem.part;
+        return drawTenFrames(t, by, t.problem.whole, function (i) { return i < part ? "rgba(70,224,255,0.95)" : "rgba(255,143,208,0.45)"; });
+      }
+    },
+
+    // ---- Money (HK$) — recognise coins and total them. Coins ARE the question, so
+    //      the aid draws on the armed target in every phase. ----
+    money: {
+      usesCountAid: false, visualAid: true,
+      DIFFS: {
+        easy: {
+          name: "EASY", pace: { maxMon: 3, goal: 6, spread: 0.45, variety: 0 }, boss: { coins: [1, 2, 5], maxCoins: 4 },
+          stages: [
+            { focus: "$1 coins", coins: [1], maxCoins: 5 },
+            { focus: "$2 coins", coins: [2], maxCoins: 4 },
+            { focus: "$1 and $2", coins: [1, 2], maxCoins: 4 },
+            { focus: "Mixed: $1 $2 $5", coins: [1, 2, 5], maxCoins: 4 }
+          ]
+        },
+        medium: {
+          name: "MEDIUM", pace: { maxMon: 4, goal: 7, spread: 0.8, variety: 1 }, boss: { coins: [1, 2, 5], maxCoins: 5 },
+          stages: [
+            { focus: "$2 and $5", coins: [2, 5], maxCoins: 4 },
+            { focus: "$1 $2 $5", coins: [1, 2, 5], maxCoins: 5 },
+            { focus: "More coins", coins: [1, 2, 5], maxCoins: 6 },
+            { focus: "Mixed money", coins: [1, 2, 5], maxCoins: 6 }
+          ]
+        },
+        hard: {
+          name: "HARD", pace: { maxMon: 5, goal: 8, spread: 1.1, variety: 2 }, boss: { coins: [1, 2, 5, 10], maxCoins: 5 },
+          stages: [
+            { focus: "$5 and $10", coins: [5, 10], maxCoins: 4 },
+            { focus: "$1 $2 $5 $10", coins: [1, 2, 5, 10], maxCoins: 5 },
+            { focus: "Fill your purse", coins: [1, 2, 5, 10], maxCoins: 6 },
+            { focus: "Mixed money", coins: [1, 2, 5, 10], maxCoins: 6 }
+          ]
+        }
+      },
+      factKey: function (total) { return "m" + total; },
+      _make: function (coins) {
+        var total = 0; for (var i = 0; i < coins.length; i++) total += coins[i];
+        // fb holds the coin combo as a string so a missed fact can be rebuilt exactly (same total -> same key)
+        return { ans: total, disp: "How much?", op: "money", fa: total, fb: coins.join("-"), coins: coins, optMin: 0, optMax: total + 10, key: this.factKey(total) };
+      },
+      gen: function (bossPhase) {
+        var spec = bossPhase ? bossPool : curStage(), pool = spec.coins, nc = rint(2, spec.maxCoins || 4), coins = [];
+        for (var i = 0; i < nc; i++) coins.push(pool[rint(0, pool.length - 1)]);
+        coins.sort(function (a, b) { return b - a; });
+        return this._make(coins);
+      },
+      factFits: function (f) { var spec = bossPhase ? bossPool : curStage(); return f.a <= Math.max.apply(null, spec.coins) * (spec.maxCoins || 4); },
+      problemFromFact: function (f) {                          // rebuild the exact missed coins so the key matches and review can master it
+        if (typeof f.b === "string" && f.b) { var c = f.b.split("-"); for (var i = 0; i < c.length; i++) c[i] = +c[i]; return this._make(c); }
+        return this.gen(bossPhase);
+      },
+      drawAid: function (t, by, hot) {
+        if (!(hot && t.problem && t.problem.coins)) return by;
+        var coins = t.problem.coins, perRow = Math.min(4, coins.length), rows = Math.ceil(coins.length / perRow);
+        var R = 15, gap = 7, cellW = R * 2 + gap, rowH = R * 2 + gap;
+        var gy = aidY(t, by, rows * rowH - gap), ctrX = clampAidX(t.x, (perRow * cellW - gap) / 2); // keep coins on-screen near edges
+        ctx.font = "bold 11px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.lineWidth = 1.6; // loop-invariant
+        for (var i = 0; i < coins.length; i++) {
+          var r = Math.floor(i / perRow), c = i % perRow, inRow = Math.min(perRow, coins.length - r * perRow);
+          var x = ctrX - (inRow * cellW - gap) / 2 + c * cellW + R, y = gy + r * rowH + R, v = coins[i], gold = v >= 5;
+          ctx.beginPath(); ctx.arc(x, y, R, 0, 6.3);
+          ctx.fillStyle = gold ? "rgba(255,196,82,0.96)" : "rgba(214,226,240,0.95)"; ctx.fill();
+          ctx.strokeStyle = gold ? "#b07a1e" : "#7e8aa0"; ctx.stroke();
+          ctx.fillStyle = "#2a1a00"; ctx.fillText("$" + v, x, y + 1);
+        }
+        ctx.textBaseline = "alphabetic";
+        return gy;
+      }
+    },
+
+    // ---- Number Line — read the marked point ("what number is the arrow on?").
+    //      The line IS the question, so the aid draws on the armed target everywhere. ----
+    nline: {
+      usesCountAid: false, visualAid: true,
+      DIFFS: {
+        easy: {
+          name: "EASY", pace: { maxMon: 3, goal: 6, spread: 0.45, variety: 0 }, boss: { max: 10 },
+          stages: [
+            { focus: "0 to 10", max: 10 }, { focus: "0 to 10", max: 10 },
+            { focus: "0 to 20", max: 20 }, { focus: "Mixed", max: 20 }
+          ]
+        },
+        medium: {
+          name: "MEDIUM", pace: { maxMon: 4, goal: 7, spread: 0.8, variety: 1 }, boss: { max: 20 },
+          stages: [
+            { focus: "0 to 20", max: 20 }, { focus: "0 to 50 (5s)", max: 50, snap: 5 },
+            { focus: "0 to 100 (10s)", max: 100, snap: 10 }, { focus: "Mixed", max: 50, snap: 5 }
+          ]
+        },
+        hard: {
+          name: "HARD", pace: { maxMon: 5, goal: 8, spread: 1.1, variety: 2 }, boss: { max: 100, snap: 5 },
+          stages: [
+            { focus: "0 to 100 (5s)", max: 100, snap: 5 }, { focus: "0 to 100", max: 100 },
+            { focus: "0 to 100", max: 100 }, { focus: "Mixed", max: 100, snap: 5 }
+          ]
+        }
+      },
+      factKey: function (v, max) { return "nl" + max + ":" + v; },
+      _make: function (v, max, snap) {
+        // optStep keeps the choices on the tick grid (a 5s/10s line never offers off-grid numbers); snap is carried in op so review rebuilds it
+        return { ans: v, disp: "What number?", op: "nline:" + (snap || 1), fa: v, fb: max, nlV: v, nlMax: max, optMax: max, optStep: snap || 1, key: this.factKey(v, max) };
+      },
+      gen: function (bossPhase) {
+        var spec = bossPhase ? bossPool : curStage(), max = spec.max || 10, snap = spec.snap || 1;
+        var v = rint(1, Math.max(1, Math.floor((max - 1) / snap))) * snap; // Math.max guards rint(a>b) if a stage ever sets max <= snap
+        if (v >= max) v = max - snap;
+        return this._make(v, max, snap);
+      },
+      factFits: function (f) { return f.b > 0; }, // any missed line can resurface; problemFromFact rebuilds it at its own range
+      problemFromFact: function (f) { var snap = (typeof f.op === "string") ? (parseInt(f.op.split(":")[1], 10) || 1) : 1; return this._make(f.a, f.b, snap); },
+      drawAid: function (t, by, hot) {
+        if (!(hot && t.problem && t.problem.nlMax)) return by;
+        var v = t.problem.nlV, max = t.problem.nlMax;
+        var lw = 150, lx = clampAidX(t.x, lw / 2) - lw / 2, ly = (t === boss) ? by + 54 : by - 24, frac = v / max, mx = lx + frac * lw; // clamp keeps the line on-screen near edges; boss: line below its bubble
+        ctx.strokeStyle = "rgba(180,200,240,0.7)"; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(lx + lw, ly); ctx.stroke();
+        var ticks = max <= 10 ? max : (max <= 20 ? max / 2 : 10);
+        ctx.lineWidth = 1.2; ctx.strokeStyle = "rgba(150,170,210,0.6)";
+        for (var i = 0; i <= ticks; i++) { var tx = lx + (i / ticks) * lw; ctx.beginPath(); ctx.moveTo(tx, ly - 4); ctx.lineTo(tx, ly + 4); ctx.stroke(); }
+        ctx.font = "8px 'Press Start 2P', monospace"; ctx.fillStyle = "#9fb6e0"; ctx.textAlign = "center"; ctx.textBaseline = "top";
+        ctx.fillText("0", lx, ly + 7); ctx.fillText(String(max), lx + lw, ly + 7);
+        ctx.fillStyle = "#ff6ec7"; ctx.textBaseline = "bottom";                 // arrow marker
+        ctx.beginPath(); ctx.moveTo(mx, ly - 3); ctx.lineTo(mx - 5, ly - 12); ctx.lineTo(mx + 5, ly - 12); ctx.closePath(); ctx.fill();
+        ctx.textBaseline = "alphabetic"; ctx.textAlign = "center";
+        return ly - 18;
+      }
     }
   };
   var mode = "addsub";              // active mode; set by the menu picker
@@ -1457,17 +1759,33 @@ try {
     }
     return M().gen(bossPhase);
   }
-  function makeOptions(ans) {
+  // Build 4 answer choices incl. the right one. A problem may declare an answer range
+  // (optMin/optMax — e.g. a number line's 0..max) so a choice never falls off the line,
+  // and a step (optStep) so a "count by 5s/10s" line only offers on-grid numbers. With
+  // none of these the behavior is exactly as before.
+  function makeOptions(ans, prob) {
+    var step = (prob && prob.optStep > 1) ? prob.optStep : 1;
+    var hasB = !!(prob && (prob.optMin != null || prob.optMax != null || step > 1));
+    var lo = (prob && prob.optMin != null) ? prob.optMin : 0;
+    var hi = (prob && prob.optMax != null) ? prob.optMax : Infinity;
     var set = {}; set[ans] = true;
     var list = [ans];
     var guard = 0;
-    while (list.length < 4 && guard < 60) {
+    while (list.length < 4 && guard < 80) {
       guard++;
-      var d = ans + rint(-6, 6);
+      var d = ans + (step > 1 ? rint(-4, 4) * step : rint(-6, 6));
       if (d < 0) d = Math.abs(d);
+      if (hasB) { if (d < lo) d = lo + (lo - d); if (d > hi) d = hi - (d - hi); if (d < lo || d > hi) continue; }
       if (!set[d]) { set[d] = true; list.push(d); }
     }
-    while (list.length < 4) { var f = list[list.length - 1] + 1; while (set[f]) f++; set[f] = true; list.push(f); }
+    var fillGuard = 0;
+    while (list.length < 4 && fillGuard++ < 400) {
+      var f = list[list.length - 1] + step;
+      if (hasB && f > hi) f = lo;
+      while (set[f] && fillGuard++ < 400) { f += step; if (hasB && f > hi) f = lo; }
+      if (set[f] || (hasB && (f < lo || f > hi))) break;
+      set[f] = true; list.push(f);
+    }
     for (var i = list.length - 1; i > 0; i--) { var j = rint(0, i); var t = list[i]; list[i] = list[j]; list[j] = t; }
     return list;
   }
@@ -1551,13 +1869,15 @@ try {
   }
   function syncButtons() {
     if (!armed || !armed.problem) return;
-    options = makeOptions(armed.problem.ans);
+    options = makeOptions(armed.problem.ans, armed.problem);
     updateButtons();
   }
-  // read a problem string aloud-friendly: symbols -> words for screen readers
+  // read a problem string aloud-friendly: symbols -> words for screen readers. A standalone
+  // "?" (a blank to fill, e.g. "40 + ?") becomes "what"; a "?" ending a word is punctuation
+  // ("How many?") and is dropped — otherwise it would slur into "manywhat".
   function speakMath(s) {
     return String(s).replace(/×/g, " times ").replace(/\+/g, " plus ").replace(/=/g, " equals ")
-      .replace(/ - /g, " minus ").replace(/\?/g, "what").replace(/\s+/g, " ").trim();
+      .replace(/ - /g, " minus ").replace(/(^|\s)\?(?=\s|$)/g, "$1what").replace(/\?/g, "").replace(/\s+/g, " ").trim();
   }
   function updateButtons() {
     for (var i = 0; i < 4; i++) {
@@ -1568,7 +1888,11 @@ try {
     else if (armed && armed.type === "fire") hintEl.textContent = "blast the fireballs!";
     else if (armed && armed.type === "candy") hintEl.textContent = "sweet! solve it to heal";
     else hintEl.textContent = "tap the answer";
-    if (armed && armed.problem) announce("Question: " + speakMath(armed.problem.disp) + ". Choices: " + options.join(", ") + ".");
+    if (armed && armed.problem) {
+      var pr = armed.problem, q = "Question: " + speakMath(pr.disp);
+      if (pr.coins) q += ". Coins: " + pr.coins.map(function (c) { return "$" + c; }).join(", "); // make Money solvable by ear
+      announce(q + ". Choices: " + options.join(", ") + ".");
+    }
   }
 
   // ---------- effects ----------
@@ -1871,7 +2195,7 @@ try {
     var mx = boss.x + (faceRight ? bw * 0.30 : -bw * 0.30);
     var my = boss.y - bh * 0.05;
     var ang = Math.atan2(girlY - my, cx - mx) + (idx - 1) * 0.16;
-    var sp = 78;
+    var sp = M().visualAid ? 50 : 78; // visual modes need reading time for the aid on the moving fireball
     monsters.push({
       type: "fire", x: mx, y: my, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp,
       size: 22, alive: true, wob: Math.random() * 6.28, t: 0, color: "#ff8a3d",
@@ -2071,7 +2395,8 @@ try {
   // ---- progress / mastery view ----
   var progressPanel = document.getElementById("progressPanel");
   var pgBody = document.getElementById("pgBody");
-  var PG_MODES = [["addsub", "Add & Subtract"], ["mul", "Times Tables"], ["place", "Tens & Ones"], ["pattern", "Number Patterns"]];
+  var PG_MODES = [["addsub", "Add & Subtract"], ["mul", "Times Tables"], ["place", "Tens & Ones"], ["pattern", "Number Patterns"],
+    ["qty", "How Many?"], ["bond", "Number Bonds"], ["money", "Money (HK$)"], ["nline", "Number Line"]];
   // a mode's solved-key set: the active mode's is live in memory; others load from storage
   function getMasteredSet(m) {
     if (m === mode) return Promise.resolve(masteredKeys);
