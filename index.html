@@ -7,6 +7,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  /* visually hidden but available to screen readers (live question/answer narration) */
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
   html, body { margin: 0; height: 100%; background: #070b22; overflow: hidden;
     font-family: Arial, sans-serif; user-select: none; -webkit-user-select: none; }
   #game { position: relative; width: 100%; height: 100vh; height: 100dvh; background: #070b22; }
@@ -153,6 +155,34 @@
     color: #07120a; background: #5ee08a; border: 0; border-radius: 10px; padding: 13px 22px; cursor: pointer;
     box-shadow: 0 0 20px rgba(94,224,138,0.4); }
   .rBackBtn:active { transform: scale(0.97); }
+  /* progress / mastery view (self-contained; mirrors the research-panel look) */
+  #progressLink { display: inline-flex; flex-direction: column; align-items: center; gap: 5px;
+    margin: 14px auto 0; padding: 12px 20px; cursor: pointer; border-radius: 12px;
+    background: rgba(16,33,77,0.6); border: 1px dashed #d0a64a;
+    transition: background .15s, border-color .15s, transform .08s, box-shadow .15s; }
+  #progressLink:hover { background: rgba(255,216,78,0.14); border-color: #ffd84e; box-shadow: 0 0 16px rgba(255,216,78,0.3); }
+  #progressLink:active { transform: scale(0.97); }
+  #progressLink .rLinkText { font-family: 'Press Start 2P', monospace; font-size: 9px; color: #ffd98a; letter-spacing: 1px; }
+  #progressLink .rLinkHint { font-family: Arial, sans-serif; font-size: 11px; color: #ffd84e; }
+  #progressPanel { position: absolute; inset: 0; z-index: 20; display: none;
+    background: rgba(5,8,24,0.97); overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  #progressPanel .rInner { max-width: 560px; margin: 0 auto; padding: 22px 22px 48px; color: #c2d2ee; text-align: center; }
+  #progressPanel h1 { font-family: 'Press Start 2P', monospace; font-size: 15px; color: #9fe9ff;
+    line-height: 1.5; margin: 6px 0 18px; text-shadow: 0 0 14px rgba(53,214,255,0.5); }
+  #progressClose { position: sticky; top: 0; float: right; font-family: 'Press Start 2P', monospace;
+    font-size: 8px; color: #eafcff; background: rgba(53,214,255,0.2); border: 1px solid #35d6ff; border-radius: 8px; padding: 9px 12px; cursor: pointer; }
+  .pgRow { display: flex; justify-content: space-between; align-items: center; gap: 12px; max-width: 380px;
+    margin: 0 auto 8px; padding: 10px 14px; border-radius: 10px; background: rgba(16,33,77,0.5);
+    font-family: 'Press Start 2P', monospace; font-size: 9px; color: #cfe0ff; }
+  .pgRow .pgNum { color: #ffd84e; white-space: nowrap; }
+  .pgRow.activeMode { border: 1px solid #35d6ff; }
+  .pgTtl { font-family: 'Press Start 2P', monospace; font-size: 10px; color: #ffd84e; letter-spacing: 1px; margin: 26px 0 12px; }
+  .pgGrid { display: grid; grid-template-columns: repeat(11, 1fr); gap: 3px; max-width: 360px; margin: 0 auto; }
+  .pgCell { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 3px;
+    font-family: Arial, sans-serif; font-size: clamp(8px, 2.4vw, 12px); font-weight: bold; background: rgba(255,255,255,0.06); color: #7e8db0; }
+  .pgCell.hdr { background: transparent; color: #8fb6ff; font-family: 'Press Start 2P', monospace; font-size: clamp(6px, 1.8vw, 9px); }
+  .pgCell.lit { background: linear-gradient(#ffe9a8, #ffd24e); color: #5a3d00; box-shadow: 0 0 8px rgba(255,216,78,0.5); }
+  .pgHint { font-family: Arial, sans-serif; font-size: 12px; color: #9fb6e0; margin: 16px auto 0; max-width: 380px; line-height: 1.5; }
 </style>
 </head>
 <body>
@@ -163,13 +193,15 @@
   <div id="controls">
     <div id="hint">tap the answer</div>
     <button id="power" aria-label="unleash thunderstorm">⚡ THUNDERSTORM ⚡</button>
-    <div id="answers">
-      <button class="ans" id="a0" aria-label="answer 1">0</button>
-      <button class="ans" id="a1" aria-label="answer 2">0</button>
-      <button class="ans" id="a2" aria-label="answer 3">0</button>
-      <button class="ans" id="a3" aria-label="answer 4">0</button>
+    <div id="answers" role="group" aria-label="answer choices">
+      <button class="ans" id="a0">0</button>
+      <button class="ans" id="a1">0</button>
+      <button class="ans" id="a2">0</button>
+      <button class="ans" id="a3">0</button>
     </div>
   </div>
+  <!-- spoken to screen readers: the current question, the choices, and answer feedback -->
+  <div id="srLive" class="sr-only" aria-live="assertive" role="status"></div>
   <div id="overlay">
     <div id="heroWrap"><span class="spark s1"></span><span class="spark s2"></span><span class="spark s3"></span><span class="spark s4"></span><span class="spark s5"></span><img id="heroArt" alt=""></div>
     <h1 id="ovTitle">Thunder Math</h1>
@@ -188,6 +220,10 @@
       <button class="diffBtn" id="dBoss" data-d="boss">BOSS</button>
     </div>
     <div id="ovCredit">Developed by Pashur Au Yeung</div>
+    <button id="progressLink" aria-label="see your progress">
+      <span class="rLinkText">&#9733; Your Progress</span>
+      <span class="rLinkHint">&#9656; facts you've solved</span>
+    </button>
     <button id="researchLink" aria-label="read the research behind Thunder Math">
       <span class="rLinkText">Built on math-education research</span>
       <span class="rLinkHint">&#9656; tap to read the studies</span>
@@ -225,6 +261,14 @@
         <li>Clements, D. H., &amp; Sarama, J. (2009). <em>Learning and Teaching Early Math: The Learning Trajectories Approach</em> (1st ed.). New York: Routledge &mdash; counting and patterning learning trajectories.</li>
       </ul>
       <button class="rBackBtn" id="researchBack">Back to menu</button>
+    </div>
+  </div>
+  <div id="progressPanel">
+    <div class="rInner">
+      <button id="progressClose">Close &#10005;</button>
+      <h1>Your Progress</h1>
+      <div id="pgBody"></div>
+      <button class="rBackBtn" id="progressBack">Back to menu</button>
     </div>
   </div>
 </div>
@@ -484,6 +528,11 @@ try {
   var ovTitle = document.getElementById("ovTitle");
   var ovText = document.getElementById("ovText");
   var ovScore = document.getElementById("ovScore");
+  var srLiveEl = document.getElementById("srLive");
+  // narrate to screen readers (the question + choices live on canvas, invisible to AT).
+  // A trailing toggled space forces re-announcement of repeated text (e.g. "Try again").
+  var srToggle = false;
+  function announce(msg) { if (srLiveEl) { srToggle = !srToggle; srLiveEl.textContent = msg + (srToggle ? " " : ""); } }
 
   var S = window.SPR || {};
   var sprites = {};
@@ -723,10 +772,12 @@ try {
     lsSet(k, v);
   }
   var best = 0;
+  var masteredKeys = {}; // active mode's solved fact keys, as a set ({ "3x7": 1, ... })
   // ---- per-mode persistence keys; addsub falls back to legacy un-namespaced keys ----
   function kBest()   { return "best_" + mode; }
   function kStars(d) { return "stars_" + mode + "_" + d; }
   function kReview() { return "review_" + mode; }
+  function kMastered() { return "mastered_" + mode; } // set of fact keys solved correctly (for the Progress view)
   function legacyGet(nsKey, legacyKey) {
     return storeGet(nsKey).then(function (v) {
       if (v != null || mode !== "addsub") return v;
@@ -761,10 +812,20 @@ try {
       if (!v) return;
       try { var q = JSON.parse(v); if (Array.isArray(q)) reviewQueue = q.filter(validReviewFact).slice(0, 12); } catch (e) {}
     });
+    masteredKeys = {};
+    storeGet(kMastered()).then(function (v) {
+      masteredKeys = parseKeySet(v);
+    });
+  }
+  // a persisted mastered-set is a JSON array of string keys -> rebuild the set safely
+  function parseKeySet(v) {
+    var set = {};
+    if (v) { try { var a = JSON.parse(v); if (Array.isArray(a)) for (var i = 0; i < a.length; i++) if (typeof a[i] === "string") set[a[i]] = 1; } catch (e) {} }
+    return set;
   }
 
   // ---------- game state ----------
-  var state = "start"; // start, playing, win, over
+  var state = "start"; // start, playing, bossAlert, victory, over
   var score = 0, combo = 0, attempts = 0, correct = 0, comboPulse = 0;
   var hp = 100, maxHp = 100;
   var level = 1;
@@ -1336,12 +1397,22 @@ try {
   // A fact is keyed so commutative sums collapse (7+8 == 8+7); subtraction keeps
   // its order. Missed facts go in reviewQueue and resurface until mastered.
   function saveReview() { try { storeSet(kReview(), JSON.stringify(reviewQueue)); } catch (e) {} }
+  // every fact solved correctly is remembered (the Progress view paints these in)
+  function saveMastered() { try { storeSet(kMastered(), JSON.stringify(Object.keys(masteredKeys))); } catch (e) {} }
+  function markMastered(key) {
+    if (!key || masteredKeys[key]) return;
+    masteredKeys[key] = 1;
+    var keys = Object.keys(masteredKeys);
+    if (keys.length > 2000) delete masteredKeys[keys[0]]; // safety cap; real fact spaces are far smaller
+    saveMastered();
+  }
   // record a graded answer; returns true if it just mastered a previously-missed fact
   function recordAnswer(problem, ok) {
     if (!problem || !problem.key) return false;
     var idx = -1;
     for (var i = 0; i < reviewQueue.length; i++) { if (reviewQueue[i].key === problem.key) { idx = i; break; } }
     if (ok) {
+      markMastered(problem.key);
       if (idx >= 0) {
         reviewQueue[idx].streak++;
         if (reviewQueue[idx].streak >= 2) { reviewQueue.splice(idx, 1); saveReview(); return true; }
@@ -1483,6 +1554,11 @@ try {
     options = makeOptions(armed.problem.ans);
     updateButtons();
   }
+  // read a problem string aloud-friendly: symbols -> words for screen readers
+  function speakMath(s) {
+    return String(s).replace(/×/g, " times ").replace(/\+/g, " plus ").replace(/=/g, " equals ")
+      .replace(/ - /g, " minus ").replace(/\?/g, "what").replace(/\s+/g, " ").trim();
+  }
   function updateButtons() {
     for (var i = 0; i < 4; i++) {
       ansEls[i].textContent = options[i];
@@ -1492,6 +1568,7 @@ try {
     else if (armed && armed.type === "fire") hintEl.textContent = "blast the fireballs!";
     else if (armed && armed.type === "candy") hintEl.textContent = "sweet! solve it to heal";
     else hintEl.textContent = "tap the answer";
+    if (armed && armed.problem) announce("Question: " + speakMath(armed.problem.disp) + ". Choices: " + options.join(", ") + ".");
   }
 
   // ---------- effects ----------
@@ -1644,6 +1721,7 @@ try {
         armed.x -= nx * 36; armed.y -= ny * 36;
       }
       popText(cx, cy - 60, canAid ? "let's count it!" : "try again!", "#ff8a8a");
+      announce(armed && armed.problem ? "Not quite, try again. " + speakMath(armed.problem.disp) : "Try again.");
       if (hp <= 0) { gameOver(); }
     }
   }
@@ -1989,6 +2067,52 @@ try {
   function closeResearch() { researchPanel.style.display = "none"; }
   document.getElementById("researchClose").addEventListener("click", closeResearch);
   document.getElementById("researchBack").addEventListener("click", closeResearch);
+
+  // ---- progress / mastery view ----
+  var progressPanel = document.getElementById("progressPanel");
+  var pgBody = document.getElementById("pgBody");
+  var PG_MODES = [["addsub", "Add & Subtract"], ["mul", "Times Tables"], ["place", "Tens & Ones"], ["pattern", "Number Patterns"]];
+  // a mode's solved-key set: the active mode's is live in memory; others load from storage
+  function getMasteredSet(m) {
+    if (m === mode) return Promise.resolve(masteredKeys);
+    return storeGet("mastered_" + m).then(parseKeySet);
+  }
+  function buildTimesGrid(grid, set) {
+    grid.innerHTML = "";
+    for (var r = 0; r <= 10; r++) {
+      for (var c = 0; c <= 10; c++) {
+        var cell = document.createElement("div");
+        if (r === 0 || c === 0) { cell.className = "pgCell hdr"; cell.textContent = (r === 0 && c === 0) ? "×" : String(r === 0 ? c : r); }
+        else {
+          var key = Math.min(r, c) + "x" + Math.max(r, c); // commutative — matches mul.factKey
+          cell.className = "pgCell" + (set[key] ? " lit" : "");
+          cell.textContent = String(r * c);
+        }
+        grid.appendChild(cell);
+      }
+    }
+  }
+  function renderProgress() {
+    pgBody.innerHTML = "";
+    PG_MODES.forEach(function (pair) {          // one row per mode, count fills in as storage resolves
+      var row = document.createElement("div");
+      row.className = "pgRow" + (pair[0] === mode ? " activeMode" : "");
+      var name = document.createElement("span"); name.textContent = pair[1];
+      var num = document.createElement("span"); num.className = "pgNum"; num.textContent = "…";
+      row.appendChild(name); row.appendChild(num); pgBody.appendChild(row);
+      getMasteredSet(pair[0]).then(function (set) { num.textContent = Object.keys(set).length + " solved"; });
+    });
+    var ttl = document.createElement("div"); ttl.className = "pgTtl"; ttl.textContent = "Times Tables"; pgBody.appendChild(ttl);
+    var grid = document.createElement("div"); grid.className = "pgGrid"; pgBody.appendChild(grid);
+    var hint = document.createElement("div"); hint.className = "pgHint";
+    hint.textContent = "Light up every square! Each box glows once you've answered that fact correctly.";
+    pgBody.appendChild(hint);
+    getMasteredSet("mul").then(function (set) { buildTimesGrid(grid, set); });
+  }
+  function closeProgress() { progressPanel.style.display = "none"; }
+  document.getElementById("progressLink").addEventListener("click", function () { renderProgress(); progressPanel.style.display = "block"; progressPanel.scrollTop = 0; });
+  document.getElementById("progressClose").addEventListener("click", closeProgress);
+  document.getElementById("progressBack").addEventListener("click", closeProgress);
   muteBtn.addEventListener("click", function () {
     muted = !muted;
     if (master) master.gain.value = muted ? 0 : 0.5;
@@ -2001,7 +2125,7 @@ try {
     if (state !== "playing") {
       // keep particles/cheer animating on overlays
       stepParticles(dt);
-      cheerT -= dt; if (cheerT < 0) cheerT = state === "win" ? 99 : 0;
+      cheerT -= dt; if (cheerT < 0) cheerT = 0;
       if (state === "bossAlert") {
         bossAlertT += dt;
         if (bossAlertT > 0.8) bossAlertReady = true; // let them read it before a tap counts
