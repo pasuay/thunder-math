@@ -2,6 +2,16 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+1. Ask, don't assume. If something is unclear, ask before writing a single line. Never make silent assumptions about intent, architecture, or requirements. When running unattended, pick the most reasonable interpretation, proceed, and record the assumption rather than blocking.
+
+2. Implement the simplest solution for simple problems, better solutions for harder problems. Do not over-engineer or add flexibility that isn't needed yet. 
+
+3. Don't touch unrelated code but please do surface bad code or design smells you discover with me so we can address them as a separate issue.
+
+4. Flag uncertainty explicitly. If you're unsure about something, see point 1 above. If it makes sense to do so, conduct a small, localised and low-risk experiment and bring the hypothesis and results to me to discuss. Confidence without certainty causes more damage than admitting a gap.
+
+5. I'm always open to ideas on better ways to do things. Please don't hesitate to suggest a better way, or one that has long lasting impact over a tactical change. (as a few examples)
+
 ## What this is
 
 Thunder Math — an arcade math-practice game for kids. **The entire app is one static file, `index.html`** (~2,800 lines of HTML + CSS in `<style>` + JS in `<script>` blocks). No build step, no package manager, no dependencies to install, no tests, no lint config. three.js (r128) is the only external dependency, loaded from a CDN at runtime.
