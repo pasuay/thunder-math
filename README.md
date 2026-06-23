@@ -12,11 +12,15 @@ Thunder Math is a fast, arcade-style math practice game for kids, rendered in **
 
 ## ✨ Features
 
-- **Four practice modes**
+- **Eight practice modes**
   - ➕ **Add & Subtract** — within 20
-  - ✖️ **Times Tables** — tables to 12
+  - ✖️ **Times Tables** — tables to 10
   - 🔟 **Tens & Ones** — place value to 100
   - ➡️ **Number Patterns** — skip counting
+  - 👀 **How Many?** — subitizing on dice & ten-frames
+  - 🧩 **Number Bonds** — part-whole to 10 & 20
+  - 🪙 **Money** — recognise & total HK$ coins
+  - 📏 **Number Line** — read the marked point (0–100)
 - **Four difficulty tiers** — Easy, Medium, Hard, and a **Boss** fight
 - **Combo system & scoring** — answer fast and accurately to build big combos and earn up to ⭐⭐⭐ per level
 - **Built on math-education research** — the difficulty ladder in each mode follows established fluency standards and peer-reviewed studies (count on → make ten → bridging → doubles, the array model for multiplication, base-ten blocks for place value, and more)
@@ -26,7 +30,7 @@ Thunder Math is a fast, arcade-style math practice game for kids, rendered in **
 
 ## 🕹️ How to play
 
-1. Pick a **mode** (Add & Subtract, Times Tables, Tens & Ones, or Number Patterns).
+1. Pick a **mode** — eight in all, from Add & Subtract and Times Tables to the number-sense modes (How Many?, Number Bonds, Money, and Number Line).
 2. Choose a **difficulty** — or jump straight into a **Boss** battle.
 3. Monsters drift toward your hero, each showing a math problem.
 4. **Tap the correct answer** to zap the highlighted monster with thunder.
@@ -96,6 +100,26 @@ Each mode's progression mirrors established fluency standards and peer-reviewed 
 
 - Mulligan, J., & Mitchelmore, M. (2009). Awareness of pattern and structure in early mathematical development. *Mathematics Education Research Journal, 21*(2), 33–49. [doi:10.1007/BF03217544](https://doi.org/10.1007/BF03217544)
 - Clements, D. H., & Sarama, J. (2009). *Learning and Teaching Early Math: The Learning Trajectories Approach* (1st ed.). New York: Routledge — counting and patterning learning trajectories.
+
+**How Many? (Subitizing)** — instantly recognising small quantities on dice patterns and ten-frames, the number-sense bedrock of counting and arithmetic:
+
+- Clements, D. H. (1999). Subitizing: What is it? Why teach it? *Teaching Children Mathematics, 5*(7), 400–405.
+- Clements, D. H., & Sarama, J. (2009). *Learning and Teaching Early Math: The Learning Trajectories Approach.* New York: Routledge — perceptual and conceptual subitizing in the early-number trajectory.
+
+**Number Bonds** — part-whole "number bonds" to 10 and 20 (the make-ten and missing-addend ideas), the engine of fluent mental arithmetic (Common Core 1.OA.C.6):
+
+- Baroody, A. J. (2006). Why children have difficulties mastering the basic number combinations and how to help them. *Teaching Children Mathematics, 13*(1), 22–31.
+- Jordan, N. C., Kaplan, D., Ramineni, C., & Locuniak, M. N. (2009). Early math matters: Kindergarten number competence and later mathematics outcomes. *Developmental Psychology, 45*(3), 850–867. [doi:10.1037/a0014939](https://doi.org/10.1037/a0014939)
+
+**Money (HK$)** — recognising coins and totalling them applies counting and addition in a concrete, real-world context, following concrete → abstract:
+
+- Department for Education (2013). *National Curriculum in England: Mathematics Programmes of Study*, Year 1 (Measurement) — recognise and know the value of different denominations of coins and notes.
+- National Governors Association Center for Best Practices & Council of Chief State School Officers (2010). *Common Core State Standards for Mathematics*, 2.MD.C.8. Washington, DC — solve word problems involving coins using the $ and ¢ symbols.
+
+**Number Line** — reading a number's position on a 0–100 line builds the numerical-magnitude understanding that is a strong predictor of later mathematics achievement:
+
+- Siegler, R. S., & Booth, J. L. (2004). Development of numerical estimation in young children. *Child Development, 75*(2), 428–444. [doi:10.1111/j.1467-8624.2004.00684.x](https://doi.org/10.1111/j.1467-8624.2004.00684.x)
+- Siegler, R. S., & Ramani, G. B. (2009). Playing linear number board games—but not circular ones—improves low-income preschoolers' numerical understanding. *Journal of Educational Psychology, 101*(3), 545–560. [doi:10.1037/a0014239](https://doi.org/10.1037/a0014239)
 
 ## 🙌 Credits
 
