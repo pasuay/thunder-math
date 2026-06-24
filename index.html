@@ -1829,6 +1829,16 @@ try {
   var SPAWN_LANES = [-Math.PI, -3 * Math.PI / 4, -Math.PI / 2, -Math.PI / 4, 0];
   var LANE_SIDE = [-1, -1, 0, 1, 1];
   var lastSpawnSide = 99;
+  // a lane is still "busy" if a recently-spawned monster is riding it near the top — the
+  // side rule alone doesn't stop a later spawn from reusing a lane another monster is on.
+  function laneBusy(a) {
+    for (var i = 0; i < monsters.length; i++) {
+      var mm = monsters[i];
+      if (mm.alive && !mm._ex && mm.type !== "candy" && mm.t < 3 &&
+          Math.abs(Math.atan2(Math.sin(mm.ang - a), Math.cos(mm.ang - a))) < 0.39) return true;
+    }
+    return false;
+  }
   function spawnMonster(type, angOverride, radScale) {
     var ang;
     if (typeof angOverride === "number") {
@@ -1839,7 +1849,9 @@ try {
       var loLane = pace.spread < 0.6 ? 1 : 0, hiLane = pace.spread < 0.6 ? 3 : 4, cand = [], li;
       for (li = loLane; li <= hiLane; li++) if (LANE_SIDE[li] !== lastSpawnSide) cand.push(li);
       if (!cand.length) for (li = loLane; li <= hiLane; li++) cand.push(li); // (only if a side has no other option)
-      var lane = cand[rint(0, cand.length - 1)];
+      var clear = []; for (li = 0; li < cand.length; li++) if (!laneBusy(SPAWN_LANES[cand[li]])) clear.push(cand[li]);
+      var pool = clear.length ? clear : cand; // prefer a lane with no monster still near its spawn point
+      var lane = pool[rint(0, pool.length - 1)];
       lastSpawnSide = LANE_SIDE[lane];
       ang = SPAWN_LANES[lane];
       if (!radScale) radScale = 1 + Math.random() * 0.3; // depth stagger so adjacent lanes ease in apart
@@ -2379,10 +2391,10 @@ try {
     // intro: a few monsters file in from the top (12 o'clock) at staggered
     // distances, so the player meets clear head-on targets and learns the
     // "one highlighted target" idea before threats come from wider angles
-    var up = -Math.PI / 2;
-    spawnMonster("drifter", up, 0.8);
-    spawnMonster("drifter", up - 0.42, 1.0);
-    spawnMonster("drifter", up + 0.42, 1.25);
+    spawnMonster("drifter", SPAWN_LANES[2], 0.8);  // 12:00 (closest, head-on)
+    spawnMonster("drifter", SPAWN_LANES[1], 1.0);  // 10:30
+    spawnMonster("drifter", SPAWN_LANES[3], 1.25); // 1:30
+    lastSpawnSide = LANE_SIDE[3];                   // first gameplay spawn then avoids that side
     rearm();
     showBanner(DIFFS[difficulty].name, STAGES[0].focus);
   }
