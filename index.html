@@ -1687,11 +1687,18 @@ try {
         var lw = 150, lx = clampAidX(t.x, lw / 2) - lw / 2, ly = (t === boss) ? by + 54 : by - 24, frac = v / max, mx = lx + frac * lw; // clamp keeps the line on-screen near edges; boss: line below its bubble
         ctx.strokeStyle = "rgba(180,200,240,0.7)"; ctx.lineWidth = 2;
         ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(lx + lw, ly); ctx.stroke();
-        var ticks = Math.min(25, Math.max(2, Math.round(max / (t.problem.optStep || 1)))); // a tick at every snap unit, so the marked value always lands on a tick
-        ctx.lineWidth = 1.2; ctx.strokeStyle = "rgba(150,170,210,0.6)";
-        for (var i = 0; i <= ticks; i++) { var tx = lx + (i / ticks) * lw; ctx.beginPath(); ctx.moveTo(tx, ly - 4); ctx.lineTo(tx, ly + 4); ctx.stroke(); }
-        ctx.font = "8px 'Press Start 2P', monospace"; ctx.fillStyle = "#9fb6e0"; ctx.textAlign = "center"; ctx.textBaseline = "top";
-        ctx.fillText("0", lx, ly + 7); ctx.fillText(String(max), lx + lw, ly + 7);
+        var snap = t.problem.optStep || 1, ticks = Math.min(25, Math.max(2, Math.round(max / snap))); // a tick at every snap unit, so the marked value always lands on a tick
+        // ruler style: short minor ticks + taller labelled "milestone" ticks at a nice
+        // round interval (multiple of snap, divides max, <=5 segments) for at-a-glance reading
+        var ms = max, TGT = [1, 2, 5, 10, 20, 25, 50, 100];
+        for (var mi = 0; mi < TGT.length; mi++) { if (TGT[mi] >= snap && TGT[mi] % snap === 0 && max % TGT[mi] === 0 && max / TGT[mi] <= 5) { ms = TGT[mi]; break; } }
+        ctx.font = "8px 'Press Start 2P', monospace"; ctx.textAlign = "center"; ctx.textBaseline = "top";
+        for (var i = 0; i <= ticks; i++) {
+          var val = i * snap, tx = lx + (i / ticks) * lw, major = (val % ms === 0);
+          ctx.lineWidth = major ? 1.6 : 1; ctx.strokeStyle = major ? "rgba(190,208,245,0.85)" : "rgba(150,170,210,0.5)";
+          ctx.beginPath(); ctx.moveTo(tx, ly - (major ? 7 : 3)); ctx.lineTo(tx, ly + (major ? 7 : 3)); ctx.stroke();
+          if (major) { ctx.fillStyle = "#aebfe2"; ctx.fillText(String(val), tx, ly + 9); }
+        }
         ctx.fillStyle = "#ff6ec7"; ctx.textBaseline = "bottom";                 // arrow marker
         ctx.beginPath(); ctx.moveTo(mx, ly - 3); ctx.lineTo(mx - 5, ly - 12); ctx.lineTo(mx + 5, ly - 12); ctx.closePath(); ctx.fill();
         ctx.textBaseline = "alphabetic"; ctx.textAlign = "center";
