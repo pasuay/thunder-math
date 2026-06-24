@@ -1829,15 +1829,22 @@ try {
   var SPAWN_LANES = [-Math.PI, -3 * Math.PI / 4, -Math.PI / 2, -Math.PI / 4, 0];
   var LANE_SIDE = [-1, -1, 0, 1, 1];
   var lastSpawnSide = 99;
-  // a lane is still "busy" if a recently-spawned monster is riding it near the top — the
-  // side rule alone doesn't stop a later spawn from reusing a lane another monster is on.
-  function laneBusy(a) {
+  // Directional crowding for ray `a`, so a new spawn can pick the emptiest direction. The
+  // earlier "busy for t<3s" flag expired long before a slow drifter cleared its lane (SPEED
+  // makes the crossing ~12s), so a lane read "clear" while still occupied and spawns stacked
+  // up. We instead count for the monster's whole life. Occupancy of the ray ITSELF must
+  // dominate the adjacency tie-breaker (own ×100 ≫ adj ×1) — on the same scale an
+  // empty-but-flanked ray could out-score a lone occupied ray and stack onto it anyway.
+  function laneLoad(a) {
+    var own = 0, adj = 0;
     for (var i = 0; i < monsters.length; i++) {
       var mm = monsters[i];
-      if (mm.alive && !mm._ex && mm.type !== "candy" && mm.t < 3 &&
-          Math.abs(Math.atan2(Math.sin(mm.ang - a), Math.cos(mm.ang - a))) < 0.39) return true;
+      if (!mm.alive || mm._ex || mm.type === "candy" || mm.type === "fire") continue;
+      var da = Math.abs(Math.atan2(Math.sin(mm.ang - a), Math.cos(mm.ang - a)));
+      if (da < 0.39) own++;       // sharing this exact ray
+      else if (da < 0.92) adj++;  // on the neighbouring ray (~45° over)
     }
-    return false;
+    return own * 100 + adj;       // occupancy dominates; adjacency only breaks ties between free rays
   }
   function spawnMonster(type, angOverride, radScale) {
     var ang;
@@ -1845,12 +1852,18 @@ try {
       ang = angOverride;
     } else {
       // Easy uses the 3 inner lanes (from above); Medium/Hard open up all 5 (incl. the
-      // horizontal sides). Pick a lane whose side differs from the previous spawn.
-      var loLane = pace.spread < 0.6 ? 1 : 0, hiLane = pace.spread < 0.6 ? 3 : 4, cand = [], li;
-      for (li = loLane; li <= hiLane; li++) if (LANE_SIDE[li] !== lastSpawnSide) cand.push(li);
-      if (!cand.length) for (li = loLane; li <= hiLane; li++) cand.push(li); // (only if a side has no other option)
-      var clear = []; for (li = 0; li < cand.length; li++) if (!laneBusy(SPAWN_LANES[cand[li]])) clear.push(cand[li]);
-      var pool = clear.length ? clear : cand; // prefer a lane with no monster still near its spawn point
+      // horizontal sides). Score every lane by how crowded its direction already is and
+      // spawn into the least-loaded one, breaking ties with a small penalty for repeating
+      // the previous side so left/centre/right keep alternating. Because each difficulty
+      // exposes at least as many lanes as pace.maxMon, this never stacks a second monster
+      // onto an occupied ray until every ray is taken.
+      var loLane = pace.spread < 0.6 ? 1 : 0, hiLane = pace.spread < 0.6 ? 3 : 4, li;
+      var best = Infinity, score = [], pool = [];
+      for (li = loLane; li <= hiLane; li++) {
+        var s = laneLoad(SPAWN_LANES[li]) + (LANE_SIDE[li] === lastSpawnSide ? 0.5 : 0);
+        score[li] = s; if (s < best) best = s;
+      }
+      for (li = loLane; li <= hiLane; li++) if (score[li] <= best + 1e-6) pool.push(li);
       var lane = pool[rint(0, pool.length - 1)];
       lastSpawnSide = LANE_SIDE[lane];
       ang = SPAWN_LANES[lane];
