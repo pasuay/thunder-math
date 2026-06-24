@@ -1548,7 +1548,12 @@ try {
         var kinds = spec.kinds || ["missB"];
         return this._make(whole, rint(1, whole - 1), kinds[rint(0, kinds.length - 1)]); // both parts >= 1 (no trivial +0 bonds)
       },
-      factFits: function (f) { var spec = bossPhase ? bossPool : curStage(); return (spec.whole || []).indexOf(f.a) >= 0; },
+      factFits: function (f) {
+        var spec = bossPhase ? bossPool : curStage();
+        if (typeof f.b !== "number" || !(f.b >= 1 && f.b < f.a)) return false;                  // valid part (avoids NaN on rebuild)
+        var kind = (typeof f.op === "string") ? f.op.slice(5) : "";
+        return (spec.whole || []).indexOf(f.a) >= 0 && (spec.kinds || []).indexOf(kind) >= 0;     // whole AND kind must fit the stage
+      },
       problemFromFact: function (f) {
         var kinds = (bossPhase ? bossPool : curStage()).kinds || ["missB"];
         var kind = (typeof f.op === "string" && f.op.indexOf("bond:") === 0) ? f.op.slice(5) : kinds[rint(0, kinds.length - 1)];
@@ -1606,7 +1611,13 @@ try {
         coins.sort(function (a, b) { return b - a; });
         return this._make(coins);
       },
-      factFits: function (f) { var spec = bossPhase ? bossPool : curStage(); return f.a <= Math.max.apply(null, spec.coins) * (spec.maxCoins || 4); },
+      factFits: function (f) {
+        var spec = bossPhase ? bossPool : curStage();
+        if (typeof f.b !== "string") return false;
+        var c = f.b.split("-"); if (c.length < 2 || c.length > (spec.maxCoins || 4)) return false;
+        for (var i = 0; i < c.length; i++) { var v = +c[i]; if (!isFinite(v) || spec.coins.indexOf(v) < 0) return false; } // every coin a valid denomination (also rejects a corrupt "5-x")
+        return true;
+      },
       problemFromFact: function (f) {                          // rebuild the exact missed coins so the key matches and review can master it
         if (typeof f.b === "string" && f.b) { var c = f.b.split("-"); for (var i = 0; i < c.length; i++) c[i] = +c[i]; return this._make(c); }
         return this.gen(bossPhase);
@@ -1652,8 +1663,8 @@ try {
         hard: {
           name: "HARD", pace: { maxMon: 5, goal: 8, spread: 1.1, variety: 2 }, boss: { max: 100, snap: 5 },
           stages: [
-            { focus: "0 to 100 (5s)", max: 100, snap: 5 }, { focus: "0 to 100", max: 100 },
-            { focus: "0 to 100", max: 100 }, { focus: "Mixed", max: 100, snap: 5 }
+            { focus: "0 to 100 (5s)", max: 100, snap: 5 }, { focus: "0 to 100 (10s)", max: 100, snap: 10 },
+            { focus: "0 to 100 (5s)", max: 100, snap: 5 }, { focus: "Mixed (5s)", max: 100, snap: 5 }
           ]
         }
       },
@@ -1668,7 +1679,7 @@ try {
         if (v >= max) v = max - snap;
         return this._make(v, max, snap);
       },
-      factFits: function (f) { return f.b > 0; }, // any missed line can resurface; problemFromFact rebuilds it at its own range
+      factFits: function (f) { var spec = bossPhase ? bossPool : curStage(); return f.b === (spec.max || 10); }, // only resurface on a same-range line stage (strict === also rejects a non-numeric/corrupt max)
       problemFromFact: function (f) { var snap = (typeof f.op === "string") ? (parseInt(f.op.split(":")[1], 10) || 1) : 1; return this._make(f.a, f.b, snap); },
       drawAid: function (t, by, hot) {
         if (!(hot && t.problem && t.problem.nlMax)) return by;
@@ -1676,7 +1687,7 @@ try {
         var lw = 150, lx = clampAidX(t.x, lw / 2) - lw / 2, ly = (t === boss) ? by + 54 : by - 24, frac = v / max, mx = lx + frac * lw; // clamp keeps the line on-screen near edges; boss: line below its bubble
         ctx.strokeStyle = "rgba(180,200,240,0.7)"; ctx.lineWidth = 2;
         ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(lx + lw, ly); ctx.stroke();
-        var ticks = max <= 10 ? max : (max <= 20 ? max / 2 : 10);
+        var ticks = Math.min(25, Math.max(2, Math.round(max / (t.problem.optStep || 1)))); // a tick at every snap unit, so the marked value always lands on a tick
         ctx.lineWidth = 1.2; ctx.strokeStyle = "rgba(150,170,210,0.6)";
         for (var i = 0; i <= ticks; i++) { var tx = lx + (i / ticks) * lw; ctx.beginPath(); ctx.moveTo(tx, ly - 4); ctx.lineTo(tx, ly + 4); ctx.stroke(); }
         ctx.font = "8px 'Press Start 2P', monospace"; ctx.fillStyle = "#9fb6e0"; ctx.textAlign = "center"; ctx.textBaseline = "top";
@@ -1805,14 +1816,26 @@ try {
   var WAND = { casting: [0.799, 0.933], cheer: [0.066, 0.030] };
   var LOOKS = ["ghost", "slime", "bat", "eye", "spike", "bug", "mushroom", "crab", "jelly", "skull", "robot"];
   var LOOK_COLORS = { ghost: "#ff7bd5", slime: "#5ee0a0", bat: "#9d7bff", eye: "#ff6ec7", spike: "#ff7a3d", bug: "#a6e22e", mushroom: "#ff5d6c", crab: "#ff9166", jelly: "#5ec8ff", skull: "#8ef06a", robot: "#54d8c8" };
+  // discrete spawn lanes — 9:00, 10:30, 12:00, 1:30, 3:00 (up = -PI/2). Spawning on
+  // these fixed rays (instead of a random arc) keeps monsters from clustering on top
+  // of each other. LANE_SIDE marks left/centre/right so we never use the same side twice.
+  var SPAWN_LANES = [-Math.PI, -3 * Math.PI / 4, -Math.PI / 2, -Math.PI / 4, 0];
+  var LANE_SIDE = [-1, -1, 0, 1, 1];
+  var lastSpawnSide = 99;
   function spawnMonster(type, angOverride, radScale) {
     var ang;
     if (typeof angOverride === "number") {
       ang = angOverride;
     } else {
-      // spread controls how "all around"; centered on up (12 o'clock); never the bottom
-      var arc = (120 + pace.spread * 90) * Math.PI / 180;
-      ang = -Math.PI / 2 + (Math.random() - 0.5) * arc;
+      // Easy uses the 3 inner lanes (from above); Medium/Hard open up all 5 (incl. the
+      // horizontal sides). Pick a lane whose side differs from the previous spawn.
+      var loLane = pace.spread < 0.6 ? 1 : 0, hiLane = pace.spread < 0.6 ? 3 : 4, cand = [], li;
+      for (li = loLane; li <= hiLane; li++) if (LANE_SIDE[li] !== lastSpawnSide) cand.push(li);
+      if (!cand.length) for (li = loLane; li <= hiLane; li++) cand.push(li); // (only if a side has no other option)
+      var lane = cand[rint(0, cand.length - 1)];
+      lastSpawnSide = LANE_SIDE[lane];
+      ang = SPAWN_LANES[lane];
+      if (!radScale) radScale = 1 + Math.random() * 0.3; // depth stagger so adjacent lanes ease in apart
     }
     // Spawn just beyond the visible screen edge along this ray (not at a fixed
     // fraction of the whole window, which made the wait scale up with screen size
@@ -2338,7 +2361,7 @@ try {
     boss = null; bossPhase = false; armed = null; candyCooldown = 6;
     castT = 0; cheerT = 0; hurtT = 0; wandFlash = 0; shake = 0; flash = 0; slowT = 0; timeScale = 1; resolving = 0;
     charge = 0; updatePowerBtn(); countAidT = 0;
-    spawnTimer = 0; elapsed = 0; victoryReady = false;
+    spawnTimer = 0; elapsed = 0; victoryReady = false; lastSpawnSide = 99;
     fpsEMA = 60; slowAccum = 0; perfWarm = 0; // restart the low-end frame-rate watch for this run
     if (bossDirect) {
       level = MAX_LEVEL;
