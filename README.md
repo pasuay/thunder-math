@@ -8,6 +8,12 @@ Thunder Math is a fast, arcade-style math practice game for kids, rendered in **
 
 ![Thunder Math title screen](screenshots/title.png)
 
+<p align="center">
+  <img src="screenshots/modes.png" alt="Eight game modes — each monster carries a different kind of math" width="840">
+</p>
+
+<p align="center"><sub>One game, <b>eight kinds of math</b> — each monster carries a different manipulative: ten-frames, arrays, base-ten blocks, number-line hops, coins, and more.</sub></p>
+
 ---
 
 ## ✨ Features
