@@ -41,6 +41,16 @@
     letter-spacing: 2px; touch-action: manipulation;
     animation: powerPulse 0.7s ease-in-out infinite alternate, powerCrackle 0.22s steps(1, end) infinite; }
   #power:active { transform: scale(0.95); }
+  /* Short viewports (landscape phones): one row of four answers and tighter chrome,
+     so the controls stop swallowing the lower third of the playfield. The JS side
+     measures the controls' real top edge and keeps the heroine/HP bar above it. */
+  @media (max-height: 480px) {
+    #controls { bottom: calc(8px + env(safe-area-inset-bottom, 0px)); gap: 5px; }
+    #hint { font-size: 9px; }
+    #answers { grid-template-columns: repeat(4, 1fr); gap: 8px; width: min(640px, 96vw); }
+    .ans { min-height: 46px; font-size: clamp(14px, 2.6vw, 22px); }
+    #power { font-size: 11px; padding: 8px 14px 6px; }
+  }
   @keyframes powerPulse {
     from { transform: scale(1); }
     to   { transform: scale(1.05); } }
@@ -565,6 +575,7 @@ try {
   ];
   var hintEl = document.getElementById("hint");
   var powerBtn = document.getElementById("power");
+  var ctrlEl = document.getElementById("controls");
   var muteBtn = document.getElementById("mute");
   var overlay = document.getElementById("overlay");
   var ovTitle = document.getElementById("ovTitle");
@@ -593,7 +604,7 @@ try {
 
   // ---------- canvas sizing ----------
   var DPR = Math.min(window.devicePixelRatio || 1, 2);
-  var W = 800, H = 450, cx = 400, cy = 234;
+  var W = 800, H = 450, cx = 400, cy = 234, playMaxY = 450;
   function resize() {
     var r = game.getBoundingClientRect();
     W = Math.max(320, r.width);
@@ -602,12 +613,33 @@ try {
     cv.height = Math.floor(H * DPR);
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     cx = W / 2;
-    cy = H * 0.54;
-    girlY = bossPhase ? H * 0.70 : cy;
+    // The bottom-anchored answer controls are opaque UI: on short viewports
+    // (landscape phones) they used to cover the heroine, the HP bar and even the
+    // boss-round question. Measure where they actually start and keep the
+    // playfield above them — 52px clears the heroine's feet and the HP bar
+    // (which reaches girlY + ~40).
+    var cr = ctrlEl.getBoundingClientRect();
+    playMaxY = cr.height > 0 ? (cr.top - r.top) - 52 : H;
+    cy = Math.min(H * 0.54, playMaxY);
+    girlY = bossPhase ? Math.min(H * 0.70, playMaxY) : cy;
+    // Rotating the phone (or the browser chrome resizing) can leave in-flight
+    // monsters far outside the new, smaller viewport — invisible for 10-20s while
+    // still holding spawn slots and even the armed target. Pull anything beyond
+    // the new edge back to just past it; they're off-screen either way, so the
+    // snap is never visible.
+    if (monsters) for (var ri = 0; ri < monsters.length; ri++) {
+      var rm = monsters[ri];
+      if (!rm.alive || rm.type === "fire") continue;
+      var ra = Math.atan2(rm.y - cy, rm.x - cx), rd = Math.hypot(rm.x - cx, rm.y - cy);
+      var re = edgeDist(ra) + 40;
+      if (rd > re) { rm.x = cx + Math.cos(ra) * re; rm.y = cy + Math.sin(ra) * re; }
+    }
   }
   window.addEventListener("resize", resize);
   window.addEventListener("orientationchange", function () { setTimeout(resize, 60); });
   if (window.visualViewport) window.visualViewport.addEventListener("resize", resize);
+  // the THUNDERSTORM button showing/hiding changes the controls' height — re-measure
+  if (window.ResizeObserver) new ResizeObserver(function () { resize(); }).observe(ctrlEl);
 
   // ---------- performance: low-end fallback ----------
   // "lowFX" is the cheap render path for weak GPUs / slow CPUs: no 3D thunder,
@@ -641,6 +673,13 @@ try {
       master.gain.value = 0.5;
       master.connect(AC.destination);
     } catch (e) { AC = null; }
+  }
+  // iOS Safari parks the context in a non-standard "interrupted" state after a phone
+  // call / Siri / app switch; gating resume on "suspended" alone left audio dead for
+  // the rest of the session. Resume from either paused state on any user gesture.
+  function wakeAudio() {
+    initAudio();
+    if (AC && (AC.state === "suspended" || AC.state === "interrupted")) AC.resume();
   }
   function now() { return AC ? AC.currentTime : 0; }
   function tone(freq, t0, dur, type, vol, slideTo) {
@@ -821,8 +860,9 @@ try {
   function kReview() { return "review_" + mode; }
   function kMastered() { return "mastered_" + mode; } // set of fact keys solved correctly (for the Progress view)
   function legacyGet(nsKey, legacyKey) {
+    var wasAddsub = mode === "addsub"; // decide at request time — mode may change before the promise resolves
     return storeGet(nsKey).then(function (v) {
-      if (v != null || mode !== "addsub") return v;
+      if (v != null || !wasAddsub) return v;
       return storeGet(legacyKey); // inherit existing Plus-Minus progress
     });
   }
@@ -839,23 +879,31 @@ try {
     if (typeof f.streak !== "number" || !isFinite(f.streak)) f.streak = 0;
     return true;
   }
-  // load best/stars/review for the active mode (called at boot and on mode switch)
+  // load best/stars/review for the active mode (called at boot and on mode switch).
+  // The generation counter discards stale async reads: with a slow injected
+  // window.storage, switching mode twice quickly would otherwise let the FIRST
+  // mode's reads resolve last and overwrite the second mode's best/review/mastery
+  // with foreign facts.
+  var loadGen = 0;
   function loadModeData() {
+    var gen = ++loadGen;
     best = 0; starsBest = { easy: 0, medium: 0, hard: 0, boss: 0 }; renderMenuStars();
     legacyGet(kBest(), "best").then(function (v) {
+      if (gen !== loadGen) return;
       best = v ? (parseInt(v, 10) || 0) : 0;
       if (state === "start") ovScore.textContent = best > 0 ? "Best score: " + best : "";
     });
     ["easy", "medium", "hard", "boss"].forEach(function (d) {
-      legacyGet(kStars(d), "stars_" + d).then(function (v) { starsBest[d] = v ? (parseInt(v, 10) || 0) : 0; renderMenuStars(); });
+      legacyGet(kStars(d), "stars_" + d).then(function (v) { if (gen !== loadGen) return; starsBest[d] = v ? (parseInt(v, 10) || 0) : 0; renderMenuStars(); });
     });
     reviewQueue = [];
     legacyGet(kReview(), "review").then(function (v) {
-      if (!v) return;
+      if (gen !== loadGen || !v) return;
       try { var q = JSON.parse(v); if (Array.isArray(q)) reviewQueue = q.filter(validReviewFact).slice(0, 12); } catch (e) {}
     });
     masteredKeys = {};
     storeGet(kMastered()).then(function (v) {
+      if (gen !== loadGen) return;
       masteredKeys = parseKeySet(v);
     });
   }
@@ -1835,6 +1883,22 @@ try {
   // up. We instead count for the monster's whole life. Occupancy of the ray ITSELF must
   // dominate the adjacency tie-breaker (own ×100 ≫ adj ×1) — on the same scale an
   // empty-but-flanked ray could out-score a lone occupied ray and stack onto it anyway.
+  // Concurrent-monster cap. Portrait exposes only the 3 top lanes (see spawnMonster),
+  // so cap at 3 there — otherwise Medium/Hard (maxMon 4-5) would have to stack a
+  // second monster onto an occupied ray, which is exactly the crowding the lanes exist
+  // to prevent.
+  function maxMonNow() { return W < H ? Math.min(pace.maxMon, 3) : pace.maxMon; }
+  // Distance from the play centre (cx, cy) to the screen edge along angle `ang`.
+  // Must measure from the real centre — cy sits at 0.54·H, so the old W/2 / H/2
+  // form shaved the top-lane margin to `40 − 0.04·H` and monsters materialised
+  // already on-screen on tall phones.
+  function edgeDist(ang) {
+    var ca = Math.cos(ang), sa = Math.sin(ang);
+    return Math.min(
+      Math.abs(ca) > 1e-3 ? (ca > 0 ? W - cx : cx) / Math.abs(ca) : Infinity,
+      Math.abs(sa) > 1e-3 ? (sa > 0 ? H - cy : cy) / Math.abs(sa) : Infinity
+    );
+  }
   function laneLoad(a) {
     var own = 0, adj = 0;
     for (var i = 0; i < monsters.length; i++) {
@@ -1852,12 +1916,16 @@ try {
       ang = angOverride;
     } else {
       // Easy uses the 3 inner lanes (from above); Medium/Hard open up all 5 (incl. the
-      // horizontal sides). Score every lane by how crowded its direction already is and
-      // spawn into the least-loaded one, breaking ties with a small penalty for repeating
-      // the previous side so left/centre/right keep alternating. Because each difficulty
-      // exposes at least as many lanes as pace.maxMon, this never stacks a second monster
-      // onto an occupied ray until every ray is taken.
-      var loLane = pace.spread < 0.6 ? 1 : 0, hiLane = pace.spread < 0.6 ? 3 : 4, li;
+      // horizontal sides). Portrait screens (phones) also stick to the 3 top lanes:
+      // the side lanes' travel distance is ~W/2 — about half the top lanes' — so side
+      // spawns arrived far too fast and crowded the narrow width. Score every lane by
+      // how crowded its direction already is and spawn into the least-loaded one,
+      // breaking ties with a small penalty for repeating the previous side so
+      // left/centre/right keep alternating. Because the exposed lanes always number
+      // at least maxMonNow(), this never stacks a second monster onto an occupied
+      // ray until every ray is taken.
+      var topOnly = pace.spread < 0.6 || W < H;
+      var loLane = topOnly ? 1 : 0, hiLane = topOnly ? 3 : 4, li;
       var best = Infinity, score = [], pool = [];
       for (li = loLane; li <= hiLane; li++) {
         var s = laneLoad(SPAWN_LANES[li]) + (LANE_SIDE[li] === lastSpawnSide ? 0.5 : 0);
@@ -1871,14 +1939,12 @@ try {
     }
     // Spawn just beyond the visible screen edge along this ray (not at a fixed
     // fraction of the whole window, which made the wait scale up with screen size
-    // and grow very long on large desktop windows). Distance from center to the
-    // edge along angle `ang`, plus a small margin so the monster eases in.
-    var ca = Math.cos(ang), sa = Math.sin(ang);
-    var edge = Math.min(
-      Math.abs(ca) > 1e-3 ? (W / 2) / Math.abs(ca) : Infinity,
-      Math.abs(sa) > 1e-3 ? (H / 2) / Math.abs(sa) : Infinity
-    );
-    var rad = (edge + 40) * (radScale || 1);
+    // and grow very long on large desktop windows), plus a small margin so the
+    // monster eases in. Candy is the exception: at its slow drift (~8 px/s) it
+    // could never cover an off-screen gap within its 6.5 s life — the heal
+    // expired unseen while blocking replacements — so it starts on-screen.
+    var edge = edgeDist(ang);
+    var rad = type === "candy" ? Math.max(80, edge - 70) : (edge + 40) * (radScale || 1);
     var m = {
       type: type || "drifter",
       ang: ang,
@@ -1938,11 +2004,13 @@ try {
     updateButtons();
   }
   // read a problem string aloud-friendly: symbols -> words for screen readers. A standalone
-  // "?" (a blank to fill, e.g. "40 + ?") becomes "what"; a "?" ending a word is punctuation
-  // ("How many?") and is dropped — otherwise it would slur into "manywhat".
+  // "?" (a blank to fill, e.g. "40 + ?" or pattern-mode "4, ?, 8") becomes "what"; a "?"
+  // ending a word is punctuation ("How many?") and is dropped — otherwise it would slur
+  // into "manywhat". The blank lookahead must accept a trailing comma, or a mid-sequence
+  // pattern blank is silently deleted ("4, , 8") and the problem is unanswerable by ear.
   function speakMath(s) {
     return String(s).replace(/×/g, " times ").replace(/\+/g, " plus ").replace(/=/g, " equals ")
-      .replace(/ - /g, " minus ").replace(/(^|\s)\?(?=\s|$)/g, "$1what").replace(/\?/g, "").replace(/\s+/g, " ").trim();
+      .replace(/ - /g, " minus ").replace(/(^|\s)\?(?=[\s,]|$)/g, "$1what").replace(/\?/g, "").replace(/\s+/g, " ").trim();
   }
   function updateButtons() {
     for (var i = 0; i < 4; i++) {
@@ -2115,7 +2183,7 @@ try {
     }
   }
   ansEls.forEach(function (el, i) {
-    el.addEventListener("click", function () { initAudio(); if (AC && AC.state === "suspended") AC.resume(); answer(i); });
+    el.addEventListener("click", function () { wakeAudio(); answer(i); });
   });
   // ---------- combo power-up: THUNDERSTORM ----------
   function updatePowerBtn() {
@@ -2149,7 +2217,7 @@ try {
     if (state === "playing" && !armed) rearm();
   }
   powerBtn.addEventListener("click", function () {
-    initAudio(); if (AC && AC.state === "suspended") AC.resume();
+    wakeAudio();
     unleashPower();
   });
   function eatCandy(m) {
@@ -2161,7 +2229,7 @@ try {
     m.alive = false; score += 20;
   }
   function onCanvasTap(e) {
-    initAudio(); if (AC && AC.state === "suspended") AC.resume();
+    wakeAudio();
     if (state === "victory") { if (victoryReady) returnToMenu(); return; }
     if (state === "bossAlert") { if (bossAlertReady) confirmBossAlert(); return; }
     if (state !== "playing") return;
@@ -2383,8 +2451,7 @@ try {
     bossPool = DIFFS[difficulty].boss;
     MAX_LEVEL = STAGES.length;
     hideOverlay();
-    initAudio();
-    if (AC && AC.state === "suspended") AC.resume();
+    wakeAudio();
     music.setBoss(false); music.start();
     state = "playing";
     score = 0; combo = 0; attempts = 0; correct = 0; hp = 100;
@@ -2447,7 +2514,7 @@ try {
   }
   for (var mbi = 0; mbi < modeBtns.length; mbi++) {
     (function (btn) {
-      btn.addEventListener("click", function () { initAudio(); if (AC && AC.state === "suspended") AC.resume(); setMode(btn.getAttribute("data-m")); });
+      btn.addEventListener("click", function () { wakeAudio(); setMode(btn.getAttribute("data-m")); });
     })(modeBtns[mbi]);
   }
   // research page open/close
@@ -2563,7 +2630,7 @@ try {
     }
     if (bossPhase) {
       // boss only — no minions during the boss stage
-    } else if (threatCount === 0 || (spawnTimer <= 0 && threatCount < pace.maxMon)) {
+    } else if (threatCount === 0 || (spawnTimer <= 0 && threatCount < maxMonNow())) {
       var roll = Math.random();
       var ty = "drifter";
       if (pace.variety >= 1 && roll < 0.25) ty = "rusher";
@@ -3120,6 +3187,14 @@ try {
     var bh = hot ? 28 : 22;
     var bx = t.x - w / 2 - 9, by = hy - bh, bw = w + 18;
     if (t === boss) by = t.y + (t.size || 70) + 10; // below the boss, away from the HP bar
+    else if (hot) {
+      // The armed question must stay readable: freshly-spawned targets sit above
+      // the top edge for a few seconds, and long place-mode labels overflow the
+      // sides of narrow screens. Pin the hot pill inside the viewport. (Dim
+      // pills stay unclamped — pinning them all would pile up at the edge.)
+      bx = Math.min(Math.max(4, bx), W - bw - 4);
+      by = Math.max(4, by);
+    }
     ctx.globalAlpha = hot ? 1 : 0.66;
     ctx.fillStyle = hot ? "rgba(7,11,34,0.85)" : "rgba(7,11,34,0.55)";
     rrect(bx, by, bw, bh, 6); ctx.fill();
@@ -3128,7 +3203,7 @@ try {
     rrect(bx, by, bw, bh, 6); ctx.stroke();
     ctx.fillStyle = hot ? "#ffffff" : "rgba(214,230,255,0.8)";
     if (hot) { ctx.shadowColor = t === boss ? "#ff6ec7" : "#46e0ff"; ctx.shadowBlur = 8; }
-    ctx.fillText(label, t.x, by + bh / 2 + 1);
+    ctx.fillText(label, bx + bw / 2, by + bh / 2 + 1); // pill centre == t.x unless clamped above
     ctx.shadowBlur = 0;
     // concrete manipulative (ten-frame for +/-, array for ×) — drawn by the active mode
     var aboveY = M().drawAid(t, by, hot);
@@ -3404,7 +3479,7 @@ try {
   function loop(ts) {
     var dt = Math.min(0.05, (ts - last) / 1000 || 0);
     last = ts;
-    girlY = bossPhase ? H * 0.70 : cy;
+    girlY = bossPhase ? Math.min(H * 0.70, playMaxY) : cy;
     update(dt);
     render();
     // Runtime low-end watch: if real frame-rate stays poor during play, drop to the
