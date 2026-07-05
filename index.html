@@ -397,6 +397,19 @@ try {
   // enable: a device that boots in lite mode pays nothing for the 3D layer, yet
   // can still switch to full effects later (FX toggle) without a page reload.
   var renderer, inited = false, failed = false;
+  // Any GL breakage after init (lost context, a throw inside the render loop)
+  // must flip ready to false, or the game keeps suppressing its 2-D canvas bolts
+  // in favour of a layer that renders nothing — total thunder blackout. The 2-D
+  // bolt data is pushed on every zap regardless, so it shows from the next strike.
+  function fail() {
+    failed = true; enabled = false;
+    api.ready = false;
+    bolts.length = 0;
+    // A lost context leaves this top-most (z-index 3) canvas showing stale/garbage
+    // pixels that wash out the 2-D game beneath it. We never render to it again
+    // (we've dropped to the 2-D bolts on #cv), so hide it for good.
+    try { glcv.style.display = "none"; } catch (e) {}
+  }
   function initGL() {
     if (inited) return true;
     if (failed) return false;
@@ -404,6 +417,7 @@ try {
       renderer = new THREE.WebGLRenderer({ canvas: glcv, alpha: true, antialias: true });
     } catch (e) { failed = true; return false; }
     renderer.setClearColor(0x000000, 0);
+    glcv.addEventListener("webglcontextlost", function (ev) { ev.preventDefault(); fail(); }, false);
     size();
     window.addEventListener("resize", size);
     lastT = performance.now();
@@ -538,7 +552,7 @@ try {
   function frame(nowMs) {
     var dt = Math.min(0.05, (nowMs - lastT) / 1000 || 0);
     lastT = nowMs;
-    if (enabled) {
+    if (enabled) try {
       for (var i = bolts.length - 1; i >= 0; i--) {
         var bo = bolts[i];
         bo.life -= dt * 1.5;
@@ -564,14 +578,14 @@ try {
       // and the whole layer can be turned off via setEnabled on weak devices.
       if (bolts.length) dirty = true;
       if (dirty) { renderer.render(scene, camera); if (!bolts.length) dirty = false; }
-    }
+    } catch (e) { fail(); }
     requestAnimationFrame(frame);
   }
 
   var api = {
     ready: false,
     resize: function () { if (inited) size(); },
-    strike: function (o, t, up) { if (enabled) makeBolt(o, t, up); },
+    strike: function (o, t, up) { if (enabled) try { makeBolt(o, t, up); } catch (e) { fail(); } },
     setEnabled: function (on) {
       if (on && !initGL()) return; // no GL context obtainable -> stay on the 2-D fallback
       enabled = !!on; api.ready = !!on;
@@ -2118,9 +2132,19 @@ try {
       forks.push(fl);
     }
     var col = up ? "#b98bff" : "#7fd2ff";
-    if (!reduceMotion) bolts.push({ seg: seg, forks: forks, life: 1, color: col, impact: { x: tx, y: ty }, origin: { x: wx, y: wy } }); // 2-D fallback bolt; suppressed under reduced motion (matches the gated WebGL strike below)
-    if (!reduceMotion && window.__thunderGL && window.__thunderGL.ready) window.__thunderGL.strike({ x: wx, y: wy }, { x: tx, y: ty }, up);
-    wandFlash = 0.5; castT = 0.45; flash = Math.max(flash, 0.55);
+    if (reduceMotion) {
+      // Reduce Motion suppresses the strobing/regenerating strike and the screen
+      // flash + shake, but STILL shows one calm, static bolt: the zap is the game's
+      // core feedback (tapping an answer with no visible thunder feels broken), and a
+      // still, softly-fading bolt is within Reduce Motion's spirit — no per-frame
+      // jitter, no vestibular motion. `calm` tells drawAbove to render it without
+      // flicker and even while the WebGL layer is nominally active (it gets no strike).
+      bolts.push({ seg: seg, forks: forks, life: 1, color: col, impact: { x: tx, y: ty }, origin: { x: wx, y: wy }, calm: true });
+    } else {
+      bolts.push({ seg: seg, forks: forks, life: 1, color: col, impact: { x: tx, y: ty }, origin: { x: wx, y: wy } }); // 2-D fallback bolt (drawn when the WebGL layer is off)
+      if (window.__thunderGL && window.__thunderGL.ready) window.__thunderGL.strike({ x: wx, y: wy }, { x: tx, y: ty }, up);
+    }
+    wandFlash = 0.5; castT = 0.45; if (!reduceMotion) flash = Math.max(flash, 0.55);
     for (var k = 0, kN = fxN(16); k < kN; k++) { var aa = Math.random() * 6.28, ss = 40 + Math.random() * 110; parts.push({ x: wx, y: wy, vx: Math.cos(aa) * ss, vy: Math.sin(aa) * ss - 20, life: 1, max: 1, c: "#cfeaff", r: 2 }); }
     for (var k2 = 0, k2N = fxN(14); k2 < k2N; k2++) { var a2 = Math.random() * 6.28, s2 = 60 + Math.random() * 150; parts.push({ x: tx, y: ty, vx: Math.cos(a2) * s2, vy: Math.sin(a2) * s2, life: 1, max: 1, c: Math.random() < 0.5 ? "#ffffff" : col, r: 2 + Math.random() * 2 }); }
   }
@@ -3285,13 +3309,17 @@ try {
   function drawAbove() {
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
-    // bolts — 2D fallback, drawn only when the WebGL layer isn't active
+    // bolts — 2D layer. Normal bolts draw only when the WebGL layer is off (they
+    // defer to it). "calm" bolts (Reduce Motion) always draw, and statically: no
+    // per-frame flicker/jitter/regeneration, and their impact rays don't rotate.
     var glOn = !!(window.__thunderGL && window.__thunderGL.ready);
-    for (var b = 0; !glOn && b < bolts.length; b++) {
+    for (var b = 0; b < bolts.length; b++) {
       var bo = bolts[b];
+      if (!bo.calm && glOn) continue;
+      var calm = !!bo.calm;
       var lifeA = Math.min(1, bo.life * 1.9);
-      var flick = 0.68 + Math.random() * 0.32;
-      var mainPts = flickerPts(bo.seg, 6 * bo.life);
+      var flick = calm ? 1 : (0.68 + Math.random() * 0.32);
+      var mainPts = calm ? bo.seg : flickerPts(bo.seg, 6 * bo.life);
       ctx.lineJoin = "round"; ctx.lineCap = "round";
       var layers = [[20, 36, bo.color, 0.16], [11, 24, bo.color, 0.38], [5.5, 14, "#dff3ff", 0.8], [2, 8, "#ffffff", 1]];
       for (var L = 0; L < layers.length; L++) {
@@ -3303,7 +3331,7 @@ try {
         ctx.stroke();
       }
       for (var f = 0; f < bo.forks.length; f++) {
-        var fp = flickerPts(bo.forks[f], 5 * bo.life);
+        var fp = calm ? bo.forks[f] : flickerPts(bo.forks[f], 5 * bo.life);
         ctx.globalAlpha = lifeA * 0.45 * flick;
         ctx.strokeStyle = bo.color; ctx.shadowColor = bo.color; ctx.shadowBlur = 16; ctx.lineWidth = 4.5 * bo.life;
         ctx.beginPath(); for (var j = 0; j < fp.length; j++) { if (j) ctx.lineTo(fp[j].x, fp[j].y); else ctx.moveTo(fp[j].x, fp[j].y); } ctx.stroke();
@@ -3318,7 +3346,7 @@ try {
         ctx.beginPath(); ctx.arc(ix, iy, Math.max(1, 11 * bo.life), 0, 6.3); ctx.fill();
         ctx.strokeStyle = bo.color; ctx.shadowBlur = 18; ctx.lineWidth = 2.4;
         for (var rr = 0; rr < 9; rr++) {
-          var ra = (rr / 9) * 6.28 + (1 - bo.life) * 3, rl = (16 + Math.random() * 26) * bo.life;
+          var ra = (rr / 9) * 6.28 + (calm ? 0 : (1 - bo.life) * 3), rl = (16 + (calm ? 13 : Math.random() * 26)) * bo.life;
           ctx.globalAlpha = lifeA * 0.6 * flick;
           ctx.beginPath(); ctx.moveTo(ix, iy); ctx.lineTo(ix + Math.cos(ra) * rl, iy + Math.sin(ra) * rl); ctx.stroke();
         }
