@@ -3143,15 +3143,24 @@ try {
 
   function drawHUD() {
     ctx.textBaseline = "top"; ctx.textAlign = "left";
-    ctx.font = "bold 17px Arial"; ctx.fillStyle = "#9fe9ff"; ctx.fillText("SCORE", 16, 10);
-    ctx.fillStyle = "#fff"; ctx.font = "bold 30px Arial"; ctx.fillText(String(score), 16, 28);
+    // Level header, top-left above the score — keeps it clear of the top-centre play
+    // area where monsters spawn. The space is reserved even during the boss stage
+    // (which shows a centred "BOSS STAGE" instead), so the score block never shifts.
+    if (!bossPhase) {
+      ctx.font = "13px 'Press Start 2P', monospace"; ctx.fillStyle = "#ffd84e";
+      ctx.shadowColor = "#ff8a00"; ctx.shadowBlur = 10; ctx.fillText("LEVEL " + level, 16, 8); ctx.shadowBlur = 0;
+      ctx.font = "9px 'Press Start 2P', monospace"; ctx.fillStyle = "#9fe9ff";
+      ctx.fillText(DIFFS[difficulty].name + " · " + curStage().focus, 16, 28);
+    }
+    ctx.font = "bold 17px Arial"; ctx.fillStyle = "#9fe9ff"; ctx.fillText("SCORE", 16, 46);
+    ctx.fillStyle = "#fff"; ctx.font = "bold 30px Arial"; ctx.fillText(String(score), 16, 64);
     // dynamic combo: grows, pops and shifts color with the streak
     if (combo > 1) {
       ctx.save();
       var cgrow = Math.min(combo, 12) / 12;
       var csize = 18 + cgrow * 12 + comboPulse * 8;
       var ccol = combo >= 10 ? "#ff4d5e" : combo >= 6 ? "#ff9f43" : combo >= 3 ? "#ffd84e" : "#ffe9a8";
-      ctx.translate(16, 78);
+      ctx.translate(16, 114);
       ctx.rotate(comboPulse * 0.06 * (combo % 2 ? 1 : -1));
       ctx.scale(1 + comboPulse * 0.25, 1 + comboPulse * 0.25);
       ctx.textBaseline = "middle"; ctx.textAlign = "left";
@@ -3164,12 +3173,12 @@ try {
       ctx.restore();
       ctx.textBaseline = "top";
     } else {
-      ctx.font = "bold 16px Arial"; ctx.fillStyle = "#9aa7c7"; ctx.fillText("COMBO x" + combo, 16, 68);
+      ctx.font = "bold 16px Arial"; ctx.fillStyle = "#9aa7c7"; ctx.fillText("COMBO x" + combo, 16, 104);
     }
     var acc = attempts ? Math.round(correct / attempts * 100) : 100;
-    ctx.fillStyle = "#7fd6a0"; ctx.font = "bold 16px Arial"; ctx.fillText("ACCURACY " + acc + "%", 16, 104);
+    ctx.fillStyle = "#7fd6a0"; ctx.font = "bold 16px Arial"; ctx.fillText("ACCURACY " + acc + "%", 16, 140);
     // power charge meter (fills with each correct answer; full = THUNDERSTORM ready)
-    var ready = charge >= chargeMax, pcw = 120, pcx = 16, pcy = 142;
+    var ready = charge >= chargeMax, pcw = 120, pcx = 16, pcy = 178;
     ctx.font = "bold 9px Arial"; ctx.fillStyle = ready ? "#ffe9a8" : "#b9a3ff";
     ctx.fillText(ready ? "POWER READY!" : "POWER", pcx, pcy - 11);
     ctx.fillStyle = "rgba(255,255,255,0.13)"; ctx.fillRect(pcx, pcy, pcw, 9);
@@ -3178,10 +3187,10 @@ try {
     ctx.fillRect(pcx, pcy, pcw * Math.min(1, charge / chargeMax), 9);
     ctx.shadowBlur = 0;
     for (var pk = 1; pk < chargeMax; pk++) { ctx.fillStyle = "rgba(7,11,34,0.7)"; ctx.fillRect(pcx + pcw * pk / chargeMax - 1, pcy, 2, 9); } // segment ticks
-    var st = curStage();
-    // big level / stage label, top-center (with upper margin)
-    ctx.textAlign = "center";
+    // Boss stage keeps a centred banner + HP bar; the normal per-level label now
+    // lives in the top-left header above the score (see the top of drawHUD).
     if (bossPhase) {
+      ctx.textAlign = "center";
       ctx.font = "20px 'Press Start 2P', monospace"; ctx.fillStyle = "#ff6ec7";
       ctx.shadowColor = "#ff2a9e"; ctx.shadowBlur = 14; ctx.fillText("BOSS STAGE", cx, 26); ctx.shadowBlur = 0;
       if (boss && boss.alive) {
@@ -3191,13 +3200,8 @@ try {
         ctx.fillStyle = "#ff3da6"; ctx.fillRect(bbx, bby, bbw * (boss.hp / boss.maxHp), 14);
         ctx.strokeStyle = "rgba(255,255,255,0.5)"; ctx.lineWidth = 1; ctx.strokeRect(bbx, bby, bbw, 14);
       }
-    } else {
-      ctx.font = "22px 'Press Start 2P', monospace"; ctx.fillStyle = "#ffd84e";
-      ctx.shadowColor = "#ff8a00"; ctx.shadowBlur = 12; ctx.fillText("LEVEL " + level, cx, 26); ctx.shadowBlur = 0;
-      ctx.font = "10px 'Press Start 2P', monospace"; ctx.fillStyle = "#9fe9ff";
-      ctx.fillText(DIFFS[difficulty].name + " · " + st.focus, cx, 54);
+      ctx.textAlign = "left";
     }
-    ctx.textAlign = "left";
 
     // problem now drawn on each monster (see drawAllQuestions)
 
