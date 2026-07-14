@@ -590,7 +590,14 @@ try {
     }
   };
   window.__thunderGL = api;
-  if (!window.__lowFXHint) api.setEnabled(true);
+  // Enable the 3-D layer only on a capable device that isn't under Reduce Motion.
+  // Under Reduce Motion every strike stays on the calm 2-D path and never calls
+  // __thunderGL.strike, so an enabled GL layer would just hold a context and spin an
+  // empty rAF loop all session for nothing — the lazy-init exists to avoid exactly
+  // that. If the setting is turned off mid-session the 2-D bolts remain (graceful).
+  var _prefersRM = false;
+  try { _prefersRM = window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) {}
+  if (!window.__lowFXHint && !_prefersRM) api.setEnabled(true);
 })();
 
 </script>
@@ -2122,19 +2129,22 @@ try {
       forks.push(fl);
     }
     var col = up ? "#b98bff" : "#7fd2ff";
+    // One 2-D bolt object either way. Under Reduce Motion it's flagged `calm` (drawAbove
+    // renders it static — no per-frame jitter/regeneration, and it draws even while the
+    // WebGL layer is nominally active) and the strobing WebGL strike + screen flash are
+    // skipped; the zap is the game's core feedback, so a still, softly-fading bolt still
+    // shows (within Reduce Motion's spirit). Otherwise the WebGL 3-D strike fires and
+    // this 2-D bolt is the fallback drawn only when that layer is off.
+    var bolt2d = { seg: seg, forks: forks, life: 1, color: col, impact: { x: tx, y: ty }, origin: { x: wx, y: wy } };
     if (reduceMotion) {
-      // Reduce Motion suppresses the strobing/regenerating strike and the screen
-      // flash + shake, but STILL shows one calm, static bolt: the zap is the game's
-      // core feedback (tapping an answer with no visible thunder feels broken), and a
-      // still, softly-fading bolt is within Reduce Motion's spirit — no per-frame
-      // jitter, no vestibular motion. `calm` tells drawAbove to render it without
-      // flicker and even while the WebGL layer is nominally active (it gets no strike).
-      bolts.push({ seg: seg, forks: forks, life: 1, color: col, impact: { x: tx, y: ty }, origin: { x: wx, y: wy }, calm: true });
+      bolt2d.calm = true;
+      bolts.push(bolt2d);
     } else {
-      bolts.push({ seg: seg, forks: forks, life: 1, color: col, impact: { x: tx, y: ty }, origin: { x: wx, y: wy } }); // 2-D fallback bolt (drawn when the WebGL layer is off)
+      bolts.push(bolt2d);
       if (window.__thunderGL && window.__thunderGL.ready) window.__thunderGL.strike({ x: wx, y: wy }, { x: tx, y: ty }, up);
+      flash = Math.max(flash, 0.55);
     }
-    wandFlash = 0.5; castT = 0.45; if (!reduceMotion) flash = Math.max(flash, 0.55);
+    wandFlash = 0.5; castT = 0.45;
     for (var k = 0, kN = fxN(16); k < kN; k++) { var aa = Math.random() * 6.28, ss = 40 + Math.random() * 110; parts.push({ x: wx, y: wy, vx: Math.cos(aa) * ss, vy: Math.sin(aa) * ss - 20, life: 1, max: 1, c: "#cfeaff", r: 2 }); }
     for (var k2 = 0, k2N = fxN(14); k2 < k2N; k2++) { var a2 = Math.random() * 6.28, s2 = 60 + Math.random() * 150; parts.push({ x: tx, y: ty, vx: Math.cos(a2) * s2, vy: Math.sin(a2) * s2, life: 1, max: 1, c: Math.random() < 0.5 ? "#ffffff" : col, r: 2 + Math.random() * 2 }); }
   }
@@ -3538,10 +3548,12 @@ try {
     // Runtime low-end watch: if real frame-rate stays poor during play, drop to the
     // cheap path once. dt is wall-clock, so the game's slow-mo effect can't fool it;
     // a short warm-up skips first-frame asset/GC jank, and ~2.5s sustained <40fps
-    // (EMA-smoothed) is required so a stray hitch never triggers it. Frames after a
-    // big rAF gap are excluded: a hidden/occluded tab resumes with a huge gap that
-    // the clamp would read as a steady 20fps and mis-verdict a healthy device.
-    if (!lowFX && state === "playing" && dt > 0 && rawDt < 0.3 && !document.hidden) {
+    // (EMA-smoothed) is required so a stray hitch never triggers it. Only multi-second
+    // gaps are excluded (rawDt < 1.0): a suspended/throttled or just-resumed tab emits
+    // ~1s+ frames that would clamp to a steady 20fps and mis-verdict a healthy device.
+    // The bound must stay above real slow-device frame times (even ~2-4fps devices sit
+    // well under 1s) or the very devices this rescues would be exempted from it.
+    if (!lowFX && state === "playing" && dt > 0 && rawDt < 1.0 && !document.hidden) {
       fpsEMA += (1 / dt - fpsEMA) * 0.1;
       if (perfWarm < 1.5) perfWarm += dt;
       else if (fpsEMA < 40) { slowAccum += dt; if (slowAccum > 2.5) { applyLowFX(true); lsSet("lowfx", String(Date.now())); popText(cx, cy - 40, "Lite mode on", "#9fe9ff"); } } // dated verdict — remembered for 7 days (see boot probe)
